@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
+import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import { CATEGORIES } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  // Firebase is intentionally optional while the public UI is being staged.
+  if (!isFirebaseConfigured) return NextResponse.json([]);
+
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
