@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function SuccessPage(){return <main className="shell"><div className="form" style={{textAlign:"center",marginTop:100}}><div className="eyebrow">Payment received</div><h1>You’re on the board.</h1><p className="muted">Your listing or bid will go live as soon as the signed Dodo webhook confirms the payment.</p><Link className="button primary" href="/">See the leaderboard</Link></div></main>}
