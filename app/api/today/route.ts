@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/firebase-admin";
+export const runtime="nodejs";
+export async function GET(){const date=new Date().toISOString().slice(0,10);const stats=await db.collection("dailyStats").doc(date).collection("entries").orderBy("totalBidTodayUSD","desc").limit(50).get();const products=await Promise.all(stats.docs.map(async d=>{const p=await db.collection("products").doc(d.id).get();return p.exists&&p.data()?.status==="live"?{id:p.id,...p.data(),totalBidUSD:d.data().totalBidTodayUSD,bidCount:d.data().bidCountToday}:null;}));return NextResponse.json(products.filter(Boolean),{headers:{"Cache-Control":"public, s-maxage=10, stale-while-revalidate=30"}})}
