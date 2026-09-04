@@ -1,0 +1,9 @@
+"use client";
+import { useState } from "react";
+
+export default function BidForm({ productId, currentTotal }: { productId: string; currentTotal: number }) {
+  const [amount, setAmount] = useState(String(Math.max(1, Math.ceil(currentTotal + 1))));
+  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [twitter, setTwitter] = useState(""); const [error, setError] = useState(""); const [loading, setLoading] = useState(false);
+  async function bid(e: React.FormEvent) { e.preventDefault(); setLoading(true); setError(""); try { const res = await fetch(`/api/products/${productId}/bid`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({amount,email,bidderName:name,bidderTwitter:twitter}) }); const data=await res.json(); if(!res.ok) throw new Error(data.error); window.location.href=data.checkout_url; } catch(err){setError(err instanceof Error?err.message:"Could not start checkout");setLoading(false)} }
+  return <form onSubmit={bid} className="form" style={{margin:"20px 0 0"}}><h2>Raise the rank</h2><div className="field"><label>Bid amount (USD)</label><input type="number" min="1" step="1" value={amount} onChange={e=>setAmount(e.target.value)} required /></div><div className="field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required placeholder="Receipt email" /></div><div className="field"><label>Name <span className="muted">optional</span></label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Anonymous" /></div><div className="field"><label>X handle <span className="muted">optional</span></label><input value={twitter} onChange={e=>setTwitter(e.target.value)} placeholder="@you" /></div>{error&&<div className="error">{error}</div>}<button className="button primary" disabled={loading}>{loading?"Opening checkout…":"Bid & outbid them"}</button><p className="muted">One-time, non-refundable payment.</p></form>
+}
