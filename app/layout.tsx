@@ -4,6 +4,7 @@ import "./premium.css";
 import "./market-primer.css";
 import "./ui-polish.css";
 import "./bid-polish.css";
+import "./mobile-parity.css";
 
 export const metadata: Metadata = {
   title: "Ai-Bid — The visibility market for AI",
