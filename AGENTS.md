@@ -34,3 +34,33 @@ Ai-Bid is a pay-to-rank public market for AI products. The UI should feel like a
 - Do not invent live market statistics. Demo values must remain clearly identifiable as preview data.
 - Never touch production credentials or payment secrets during UI work.
 - Keep Ai-Bid's existing SVG logo identity; do not generate replacement imagery for the brand.
+
+  ## Design direction
+
+Non-negotiable. Do not reinterpret, extend, or "improve" these — if a new
+component needs a color, radius, or spacing value, it must be one of the
+ones listed below. Nothing else.
+
+- One stylesheet: app/globals.css. Do not create additional CSS files
+  (no *-polish.css, *-primer.css, *-premium.css, etc.). If globals.css
+  is getting hard to navigate, split it by section comment, not by file.
+- Zero `!important` anywhere. If you're reaching for `!important`, a
+  selector elsewhere is wrong — fix that selector instead.
+- Single theme. No theme toggle, no light mode, no `prefers-color-scheme`
+  branching. Dark only:
+  --bg:#080808  --bg-glow:#2a1700 (hero only, once)  --surface:#0d0d0d
+  --border:#292929  --text-primary:#f5f5f5  --text-secondary:#a9a9a9
+  --text-tertiary:#767676  --accent:#ff7a00  --accent-ink:#090909
+  --danger:#ff6b6b  --success:#75e6a1
+  Nine tokens. No new grays, no new accent, no light-mode branch.
+- No box-shadow on any element. Borders do the separation job.
+- No monospace font anywhere. One sans stack for everything, no
+  exceptions for labels, tickers, or step numbers.
+- Radius: 8px (inputs, pills, thumbnails) / 12px (buttons, tabs) /
+  16px (cards). No other radius value.
+- The eyebrow/kicker label style is used exactly once, in the hero.
+  Do not add a `.section-kicker` or reuse it elsewhere.
+- No new hero widgets (charts, previews, stat graphics) without this
+  being explicitly requested first — describe the plan before building it.
+- No hover-underline animations on nav links, no sticky/blurred header,
+  no backdrop-filter, unless explicitly requested.
