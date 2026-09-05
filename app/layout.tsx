@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./premium.css";
+import "./market-primer.css";
 
 export const metadata: Metadata = {
   title: "Ai-Bid — The visibility market for AI",
