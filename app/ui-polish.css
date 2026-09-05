@@ -4,6 +4,33 @@
   outline-offset: 3px;
 }
 
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 9px 12px;
+  border: 1px solid var(--p-line-strong);
+  border-radius: 8px;
+  background: var(--p-text);
+  color: var(--p-bg);
+  font-size: 12px;
+  font-weight: 720;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform .16s ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--p-accent);
+  outline-offset: 3px;
+}
+
+#main-content {
+  scroll-margin-top: 76px;
+}
+
 ::selection {
   background: var(--p-text);
   color: var(--p-bg);
@@ -25,7 +52,7 @@
   right: 0;
   bottom: -1px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--p-line), transparent);
+  background: var(--p-line);
   pointer-events: none;
 }
 
