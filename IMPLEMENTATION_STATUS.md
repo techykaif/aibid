@@ -1,6 +1,6 @@
 # Ai-Bid MVP — Implementation Status
 
-The README and PRD v2 define the product requirements. The implementation is now scaffolded in `main` with the core public-market, trust, and measurement paths in place.
+The README and PRD v2 define the product requirements. The implementation is now scaffolded in `main` with the core public-market, trust, measurement, and sharing paths in place.
 
 ## Implemented
 
@@ -20,7 +20,7 @@ The README and PRD v2 define the product requirements. The implementation is now
 - Public global market stats API and transactional stats rollup
 - Homepage market stats strip backed by the verified `stats/global` rollup
 - Embeddable SVG rank badge endpoint
-- Dynamic product Open Graph image route
+- Dynamic product Open Graph image route with live category rank
 - SEO sitemap and robots metadata
 - Firestore security rules and composite indexes
 - Environment variable template
@@ -34,10 +34,8 @@ The README and PRD v2 define the product requirements. The implementation is now
 3. Configure Dodo webhook endpoint at `/api/webhooks/dodo` and its signing secret.
 4. Add logo upload through Firebase Storage (the current submission flow intentionally leaves logo upload out until Storage credentials are configured).
 5. Add reactive report/moderation admin tooling.
-6. Add a true Firestore live ticker/onSnapshot layer only if traffic economics justify it; current boards intentionally use short polling behind cached server routes.
-7. Add production integration/e2e tests against Dodo test mode and Firebase emulator.
-8. Wire the real rank into the dynamic product Open Graph image.
-9. Deploy to Vercel and run the first real payment flow before launch.
+6. Add production integration/e2e tests against Dodo test mode and Firebase emulator.
+7. Deploy to Vercel and run the first real payment flow before launch.
 
 ## Payment safety
 
