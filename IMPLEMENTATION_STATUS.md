@@ -1,6 +1,6 @@
 # Ai-Bid MVP — Implementation Status
 
-The README is the product requirements document. The initial implementation is now scaffolded in `main`.
+The README and PRD v2 define the product requirements. The implementation is now scaffolded in `main` with the core public-market, trust, and measurement paths in place.
 
 ## Implemented
 
@@ -18,12 +18,14 @@ The README is the product requirements document. The initial implementation is n
 - Public product API field allowlist that keeps submitter email private
 - Tracked outbound product redirects at `/go/[productId]` with click counts
 - Public global market stats API and transactional stats rollup
+- Homepage market stats strip backed by the verified `stats/global` rollup
 - Embeddable SVG rank badge endpoint
 - Dynamic product Open Graph image route
 - SEO sitemap and robots metadata
 - Firestore security rules and composite indexes
 - Environment variable template
 - Public Terms, Privacy, Rules, and FAQ pages
+- Homepage footer links to legal/trust pages
 
 ## Still required before production
 
@@ -32,10 +34,15 @@ The README is the product requirements document. The initial implementation is n
 3. Configure Dodo webhook endpoint at `/api/webhooks/dodo` and its signing secret.
 4. Add logo upload through Firebase Storage (the current submission flow intentionally leaves logo upload out until Storage credentials are configured).
 5. Add reactive report/moderation admin tooling.
-6. Add a true Firestore live ticker/onSnapshot layer if traffic economics justify it; current boards use short polling to keep the initial read footprint predictable.
+6. Add a true Firestore live ticker/onSnapshot layer only if traffic economics justify it; current boards intentionally use short polling behind cached server routes.
 7. Add production integration/e2e tests against Dodo test mode and Firebase emulator.
-8. Deploy to Vercel and run the first real payment flow before launch.
+8. Wire the real rank into the dynamic product Open Graph image.
+9. Deploy to Vercel and run the first real payment flow before launch.
 
 ## Payment safety
 
 The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional.
+
+## Measurement safety
+
+The homepage stats strip reads only the public aggregate fields from `stats/global`. It does not expose submitter email or other private product fields, and preview mode shows zeroed values rather than invented market activity.
