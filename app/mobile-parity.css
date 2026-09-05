@@ -1,0 +1,60 @@
+/* Ai-Bid mobile parity: preserve the complete navigation and market actions on small screens. */
+
+@media (max-width: 900px) {
+  .site-header {
+    height: auto !important;
+    min-height: 60px !important;
+    flex-wrap: wrap !important;
+    align-content: center;
+    row-gap: 4px !important;
+    padding-block: 6px !important;
+  }
+
+  .main-nav {
+    display: flex !important;
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
+    min-width: 0;
+    margin-left: 0 !important;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    padding: 2px 0 4px;
+  }
+
+  .main-nav::-webkit-scrollbar { display: none; }
+
+  .main-nav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: min(100% - 24px, 1200px) !important;
+  }
+
+  .site-header {
+    column-gap: 8px !important;
+  }
+
+  .header-actions {
+    gap: 6px !important;
+  }
+
+  .header-actions .button {
+    min-height: 38px;
+    padding-inline: 10px;
+  }
+
+  .hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-actions .button {
+    min-width: 0;
+  }
+}
