@@ -33,7 +33,7 @@ export default function Home() {
       </div>
     </section>
 
-    <div className="ticker"><span className="live-dot"/><b>LIVE MARKET</b><span className="ticker-sep">/</span><span>Rankings are driven by confirmed cumulative bids</span><span className="ticker-right">24/7</span></div>
+    <div className="ticker"><span className="status-dot"/><b>MARKET STATUS</b><span className="ticker-sep">/</span><span>Preview data · rankings will use confirmed bids</span><span className="ticker-right">24/7</span></div>
     <section className="market-section" id="categories">
       <div className="boardhead"><div><div className="section-kicker">MARKET / ALL TIME</div><strong>All-time leaderboard</strong><div className="muted">The more confirmed bids a product earns, the higher it ranks.</div></div><Link className="button" href="/submit">Submit a product <span>→</span></Link></div>
       <Leaderboard />
