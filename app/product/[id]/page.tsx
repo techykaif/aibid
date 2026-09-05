@@ -7,12 +7,12 @@ import SiteHeader from "@/app/components/SiteHeader";
 
 export const revalidate = 30;
 const demo: Product[] = [
-  { id:"demo-1", name:"Cursor", url:"https://cursor.com", tagline:"The AI code editor built for pair programming with models.", description:"A fast, focused coding environment where AI sits inside the editor.", category:"coding", totalBidUSD:2480, bidCount:42, status:"live" },
-  { id:"demo-2", name:"Perplexity", url:"https://perplexity.ai", tagline:"Search, research and answer with AI at the center.", category:"productivity", totalBidUSD:1920, bidCount:31, status:"live" },
-  { id:"demo-3", name:"Lovable", url:"https://lovable.dev", tagline:"Build production-ready apps by chatting with AI.", category:"coding", totalBidUSD:1540, bidCount:27, status:"live" },
-  { id:"demo-4", name:"Runway", url:"https://runwayml.com", tagline:"Generative video tools for the next generation of creators.", category:"video", totalBidUSD:1120, bidCount:19, status:"live" },
-  { id:"demo-5", name:"v0", url:"https://v0.dev", tagline:"Turn ideas into polished interfaces with generative UI.", category:"coding", totalBidUSD:860, bidCount:14, status:"live" },
-  { id:"demo-6", name:"Gamma", url:"https://gamma.app", tagline:"Create beautiful decks and docs without the busywork.", category:"writing", totalBidUSD:640, bidCount:11, status:"live" },
+  { id:"demo-1", name:"Cursor", url:"https://cursor.com", tagline:"The AI code editor built for pair programming with models.", description:"A fast, focused coding environment where AI sits inside the editor.", category:"coding", totalBidUSD:2480, bidCount:42, clicks:0, status:"live" },
+  { id:"demo-2", name:"Perplexity", url:"https://perplexity.ai", tagline:"Search, research and answer with AI at the center.", category:"productivity", totalBidUSD:1920, bidCount:31, clicks:0, status:"live" },
+  { id:"demo-3", name:"Lovable", url:"https://lovable.dev", tagline:"Build production-ready apps by chatting with AI.", category:"coding", totalBidUSD:1540, bidCount:27, clicks:0, status:"live" },
+  { id:"demo-4", name:"Runway", url:"https://runwayml.com", tagline:"Generative video tools for the next generation of creators.", category:"video", totalBidUSD:1120, bidCount:19, clicks:0, status:"live" },
+  { id:"demo-5", name:"v0", url:"https://v0.dev", tagline:"Turn ideas into polished interfaces with generative UI.", category:"coding", totalBidUSD:860, bidCount:14, clicks:0, status:"live" },
+  { id:"demo-6", name:"Gamma", url:"https://gamma.app", tagline:"Create beautiful decks and docs without the busywork.", category:"writing", totalBidUSD:640, bidCount:11, clicks:0, status:"live" },
 ];
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +33,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const category = CATEGORIES.find(c => c.slug === product!.category)?.name || "AI Tools";
   const demoPosition = demo.findIndex(p => p.id === product!.id);
+  const clicks = Number(product!.clicks || 0);
 
   return <main className="shell">
     <SiteHeader />
@@ -47,8 +48,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <div className="stats" style={{ justifyContent: "flex-start" }}>
           <div className="stat"><b>${Number(product!.totalBidUSD).toLocaleString()}</b> total bid</div>
           <div className="stat"><b>{product!.bidCount}</b> bids</div>
+          <div className="stat"><b>{clicks.toLocaleString()}</b> clicks</div>
         </div>
-        <a className="button" href={product!.url} target="_blank" rel="noreferrer">Visit product ↗</a>
+        <a className="button" href={`/go/${product!.id}`} target="_blank" rel="noreferrer">Visit product ↗</a>
       </article>
       <aside className="metric">
         <div className="metric-label">Current position</div>
