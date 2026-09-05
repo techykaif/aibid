@@ -39,6 +39,10 @@ export default function Home() {
       <Leaderboard />
     </section>
     <section className="closing-grid" id="how-it-works"><div><div className="section-kicker">WHY AI-BID</div><h2>Attention should be<br/>earned in public.</h2></div><div className="closing-copy"><p>One board. Seven categories. A simple ranking signal. No opaque recommendation engine deciding which builder gets seen.</p><Link className="text-link" href="/submit">Put your product on the market <span>→</span></Link></div></section>
-    <footer className="footer"><span>Ai-Bid</span><span>Discover · Bid · Be seen</span><span>One-time bids · Non-refundable</span></footer>
+    <footer className="footer">
+      <span>Ai-Bid</span>
+      <span><Link href="/legal/terms">Terms</Link> · <Link href="/legal/privacy">Privacy</Link> · <Link href="/legal/rules">Rules</Link> · <Link href="/legal/faq">FAQ</Link></span>
+      <span>One-time bids · Non-refundable</span>
+    </footer>
   </main>;
 }
