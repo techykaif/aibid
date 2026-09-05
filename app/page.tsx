@@ -31,20 +31,13 @@ export default async function Home() {
 
   return <main className="shell">
     <SiteHeader />
-    <div className="demo-banner" role="status"><span className="status-dot"/><b>PREVIEW MARKET</b><span>Payments are disabled until production credentials are connected.</span></div>
+    {!isFirebaseConfigured && <div className="demo-banner" role="status"><span className="status-dot"/><b>MARKET NOT CONNECTED</b><span>Payments and live rankings are disabled until production credentials are connected.</span></div>}
     <header className="hero">
       <div className="hero-copy">
         <div className="eyebrow">THE VISIBILITY MARKET FOR AI</div>
         <h1>Build it.<br/><span>Bid it.</span> Be seen.</h1>
         <p>A public leaderboard where AI products compete for attention. List your product, put real money behind it, and climb through the market on confirmed bid volume.</p>
         <div className="hero-actions"><Link className="button primary button-lg" href="/submit">List your AI <span>→</span></Link><Link className="button button-lg" href="/today">See today&apos;s market <span>↗</span></Link></div>
-      </div>
-      <div className="market-preview" aria-label="Market snapshot">
-        <div className="preview-head"><span><i className="live-dot"/> Market snapshot</span><span className="mono">PREVIEW</span></div>
-        <div className="preview-chart" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i}/>)}</div>
-        <div className="preview-main"><div><span className="metric-label">Current #1</span><strong>$2.48k</strong></div><span className="trend">42 bids</span></div>
-        <div className="preview-grid"><div><span className="metric-label">Minimum</span><strong>$5</strong></div><div><span className="metric-label">Categories</span><strong>07</strong></div><div><span className="metric-label">Ranking</span><strong>Bid volume</strong></div></div>
-        <div className="preview-note">Illustrative preview using the current leaderboard demo data.</div>
       </div>
     </header>
 
@@ -67,7 +60,7 @@ export default async function Home() {
       </div>
     </section>
 
-    <div className="ticker"><span className="status-dot"/><b>MARKET STATUS</b><span className="ticker-sep">/</span><span>Preview data · rankings will use confirmed bids</span><span className="ticker-right">24/7</span></div>
+    <div className="ticker"><span className="status-dot"/><b>MARKET STATUS</b><span className="ticker-sep">/</span><span>{isFirebaseConfigured ? "Live rankings · confirmed bids only" : "Waiting for the production market connection"}</span><span className="ticker-right">24/7</span></div>
     <section className="market-section" id="categories">
       <div className="boardhead"><div><div className="section-kicker">MARKET / ALL TIME</div><strong>All-time leaderboard</strong><div className="muted">The more confirmed bids a product earns, the higher it ranks.</div></div><Link className="button" href="/submit">Submit a product <span>→</span></Link></div>
       <Leaderboard />
