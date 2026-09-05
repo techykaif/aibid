@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import { CATEGORIES, type Product } from "@/lib/types";
@@ -15,24 +14,55 @@ const demo: Product[] = [
   { id:"demo-6", name:"Gamma", url:"https://gamma.app", tagline:"Create beautiful decks and docs without the busywork.", category:"writing", totalBidUSD:640, bidCount:11, clicks:0, status:"live" },
 ];
 
+const publicProduct = (id: string, data: FirebaseFirestore.DocumentData): Product => ({
+  id,
+  name: String(data.name || ""),
+  url: String(data.url || ""),
+  tagline: String(data.tagline || ""),
+  description: data.description ? String(data.description) : undefined,
+  category: data.category,
+  logoUrl: data.logoUrl,
+  twitterHandle: data.twitterHandle,
+  totalBidUSD: Number(data.totalBidUSD || 0),
+  bidCount: Number(data.bidCount || 0),
+  clicks: Number(data.clicks || 0),
+  status: data.status,
+  createdAt: data.createdAt,
+  lastBidAt: data.lastBidAt,
+});
+
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let product: Product | undefined;
   let bids = [420, 260, 180];
+  let rank: number | undefined;
 
   if (!isFirebaseConfigured) {
     product = demo.find(p => p.id === id);
     if (!product) notFound();
+    const position = demo
+      .filter(p => p.category === product!.category)
+      .sort((a, b) => b.totalBidUSD - a.totalBidUSD)
+      .findIndex(p => p.id === product!.id);
+    rank = position >= 0 ? position + 1 : undefined;
   } else {
     const snap = await db.collection("products").doc(id).get();
     if (!snap.exists || snap.data()?.status !== "live") notFound();
-    product = { id: snap.id, ...snap.data() } as Product;
+    product = publicProduct(snap.id, snap.data()!);
+
+    const ranked = await db.collection("products")
+      .where("status", "==", "live")
+      .where("category", "==", product.category)
+      .orderBy("totalBidUSD", "desc")
+      .get();
+    const position = ranked.docs.findIndex(d => d.id === id);
+    rank = position >= 0 ? position + 1 : undefined;
+
     const bs = await db.collection("bids").where("productId", "==", id).where("status", "==", "confirmed").orderBy("createdAt", "desc").limit(20).get();
     bids = bs.docs.map(d => Number(d.data().amountUSD || 0));
   }
 
   const category = CATEGORIES.find(c => c.slug === product!.category)?.name || "AI Tools";
-  const demoPosition = demo.findIndex(p => p.id === product!.id);
   const clicks = Number(product!.clicks || 0);
 
   return <main className="shell">
@@ -54,7 +84,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       </article>
       <aside className="metric">
         <div className="metric-label">Current position</div>
-        <div className="metric-value">#{demoPosition >= 0 ? demoPosition + 1 : "—"}</div>
+        <div className="metric-value">#{rank ?? "—"}</div>
         <div className="metric-label" style={{ marginTop: 24 }}>Competitive move</div>
         <div className="muted" style={{ whiteSpace: "normal", lineHeight: 1.5 }}>Add a confirmed bid to push the product higher.</div>
       </aside>
