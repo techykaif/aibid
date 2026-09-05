@@ -152,43 +152,39 @@ html.dark .theme-sun { display: block; }
   .hero h1 { font-size: 58px !important; }
   .hero p { font-size: 15px !important; }
   .board-labels { display: none; }
-  .row { grid-template-columns: 38px minmax(0, 1fr) 92px !important; gap: 10px; padding: 13px 14px; }
-  .count { grid-column: 3; grid-row: 1; }
-  .bid { grid-column: 3; grid-row: 1; align-self: end; margin-bottom: -17px; }
-  .product { grid-column: 2; grid-row: 1; }
-  .row-action { grid-column: 3; grid-row: 1; align-self: center; justify-self: end; min-width: 54px; transform: translateY(13px); }
-  .closing-grid { grid-template-columns: 1fr; gap: 16px; padding: 76px 12px 56px; }
-  .closing-copy { padding-top: 0; }
-  .submit-grid, .product-hero { grid-template-columns: 1fr !important; }
+  .row { grid-template-columns: 38px minmax(0, 1fr) auto !important; grid-template-rows: auto auto; gap: 8px 10px; padding: 13px 14px; }
+  .row .rank { grid-column: 1; grid-row: 1; align-self: center; }
+  .row .product { grid-column: 2; grid-row: 1; min-width: 0; }
+  .row .bid { grid-column: 3; grid-row: 1; align-self: center; }
+  .row .count { grid-column: 2; grid-row: 2; justify-content: flex-start; font-size: 9px; }
+  .row .row-action { grid-column: 3; grid-row: 2; min-width: 70px; padding: 8px 10px; }
+  .product .muted { max-width: 100%; }
+  .closing-grid { grid-template-columns: 1fr; gap: 26px; padding: 70px 12px 54px; }
+  .closing-grid h2 { font-size: 36px; }
+  .footer { flex-direction: column; }
+  .submit-grid, .product-hero { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .shell { width: calc(100% - 24px) !important; }
-  .site-header, .nav { min-height: 56px !important; height: 56px !important; }
-  .brand { font-size: 18px !important; }
-  .brand img { width: 28px; height: 28px; }
-  .header-actions .theme-toggle { width: 36px; height: 36px; }
+  .shell { width: min(100% - 20px, 1200px) !important; }
+  .brand-name { font-size: 18px !important; }
+  .header-actions { gap: 5px; }
   .header-actions .button { font-size: 11px; }
-  .hero { padding: 54px 6px 48px !important; }
-  .hero h1 { font-size: clamp(47px, 15vw, 60px) !important; }
-  .hero-actions .button { flex: 1 1 150px; }
-  .demo-banner { justify-content: flex-start; flex-wrap: wrap; }
-  .demo-banner span:last-child { flex: 1 1 100%; padding-left: 14px; }
+  .hero { padding: 54px 6px 44px !important; }
+  .hero h1 { font-size: 49px !important; letter-spacing: -.075em; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .button { width: 100%; }
+  .market-preview { padding: 13px; }
+  .preview-main strong { font-size: 25px; }
   .ticker-right { display: none; }
-  .boardhead { align-items: flex-start; flex-direction: column; }
-  .boardhead .button { width: 100%; }
   .tabs { overflow-x: auto; }
-  .row { min-height: 76px; }
+  .tab { font-size: 9px; padding: 8px 9px; }
+  .row { padding: 12px 11px; }
   .logo { width: 38px; height: 38px; flex-basis: 38px; }
   .product { gap: 9px; }
   .product strong { font-size: 12px; }
   .product .muted { font-size: 9px; }
-  .count { font-size: 9px; }
   .bid { font-size: 13px; }
-  .row-action { min-width: 50px; padding: 6px 7px; font-size: 9px; }
-  .closing-grid h2 { font-size: 34px; }
-  .form { padding: 22px 18px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .button, .theme-toggle, .main-nav a, .nav-link, .row, .row-action { transition: none !important; }
+  .row-action { font-size: 9px; }
+  .form { padding: 21px; }
+  .form h1 { font-size: 35px; }
 }
