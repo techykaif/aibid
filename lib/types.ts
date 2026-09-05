@@ -22,6 +22,7 @@ export interface Product {
   twitterHandle?: string;
   totalBidUSD: number;
   bidCount: number;
+  clicks?: number;
   status: ProductStatus;
   createdAt?: string;
   lastBidAt?: string;
