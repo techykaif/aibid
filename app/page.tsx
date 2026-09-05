@@ -18,9 +18,9 @@ export default function Home() {
       <div className="market-preview" aria-label="Market snapshot">
         <div className="preview-head"><span><i className="live-dot"/> Market snapshot</span><span className="mono">PREVIEW</span></div>
         <div className="preview-chart" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i}/>)}</div>
-        <div className="preview-main"><div><span className="metric-label">Total bid volume</span><strong>$8.56k</strong></div><span className="trend">↑ 18.4%</span></div>
-        <div className="preview-grid"><div><span className="metric-label">Products</span><strong>1,240+</strong></div><div><span className="metric-label">Categories</span><strong>07</strong></div><div><span className="metric-label">Minimum</span><strong>$5</strong></div></div>
-        <div className="preview-note">Preview figures shown until the live market is connected.</div>
+        <div className="preview-main"><div><span className="metric-label">Current #1</span><strong>$2.48k</strong></div><span className="trend">42 bids</span></div>
+        <div className="preview-grid"><div><span className="metric-label">Minimum</span><strong>$5</strong></div><div><span className="metric-label">Categories</span><strong>07</strong></div><div><span className="metric-label">Ranking</span><strong>Bid volume</strong></div></div>
+        <div className="preview-note">Illustrative preview using the current leaderboard demo data.</div>
       </div>
     </header>
 
