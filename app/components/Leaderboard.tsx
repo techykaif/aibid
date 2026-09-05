@@ -24,7 +24,10 @@ async function getProducts(category?: string) {
 export default async function Leaderboard({ category }: { category?: string }) {
   const products = await getProducts(category);
   return <section className="board">
-    <div className="tabs"><Link className={`tab ${!category ? "active" : ""}`} href="/">All</Link>{CATEGORIES.map(item=><Link key={item.slug} className={`tab ${category===item.slug?"active":""}`} href={`/category/${item.slug}`}>{item.name.replace("AI ","")}</Link>)}</div>
+    <nav className="tabs" aria-label="Filter leaderboard by category">
+      <Link className={`tab ${!category ? "active" : ""}`} href="/" aria-current={!category ? "page" : undefined}>All</Link>
+      {CATEGORIES.map(item => <Link key={item.slug} className={`tab ${category===item.slug ? "active" : ""}`} href={`/category/${item.slug}`} aria-current={category===item.slug ? "page" : undefined}>{item.name.replace("AI ","")}</Link>)}
+    </nav>
     <div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>CURRENT BID</span><span>ACTION</span></div>
     {products.length===0 ? <div className="empty"><div className="empty-icon">✦</div><strong>The board is waiting.</strong><span>Be the first product to claim this category.</span></div> : products.map((product,index)=><div className={`row ${index<3?"top-row":""}`} key={product.id}>
       <div className={`rank rank-${index+1}`}>{index<3?["01","02","03"][index]:String(index+1).padStart(2,"0")}</div>
