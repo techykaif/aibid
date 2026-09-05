@@ -70,9 +70,9 @@ Fields: product name, URL, one-line tagline, longer description (optional), cate
 outbid.lol shows a click count on every listing ("50,363 clicks") — this is the actual ROI signal a bidder is paying for, not a nice-to-have. Route outbound product links through `/go/[productId]` instead of a direct `<a href>`: log the click, increment `products/{id}.clicks`, then redirect (302) to `product.url`. Display the running count on the product card and product page next to the bid total, formatted the same way as bid totals (comma-grouped integer, no abbreviation).
 
 ### 6.7 Stats & Analytics (new)
-outbid.lol runs a visible "revenue / products added" counter and links out to a fully public live-analytics dashboard — this is core to the mechanic's credibility, not decoration; it's the proof that money is actually moving. For ai-bid.lol:
+outbid.lol runs a visible "revenue / products added" count and links out to a fully public live-analytics dashboard — this is core to the mechanic's credibility, not decoration; it's the proof that money is actually moving. For ai-bid.lol:
 - A `stats/global` Firestore doc, incremented in the same transaction as every confirmed bid (`totalRevenueUSD`, `totalProducts`, `totalBids`).
-- A stats strip on the homepage reusing the existing `.stat` pill component (see design guidelines) showing these three numbers live.
+- A homepage market stats strip backed by that public aggregate, showing these three numbers with a 15-second revalidation window. Preview mode shows zeroed values rather than invented activity.
 - Optional, not MVP-blocking: a public analytics dashboard link (e.g., a shared Plausible/Datafa.st view) in the footer, same transparency move outbid.lol makes. Defer unless analytics tooling is already in place.
 
 ### 6.8 Legal & Trust Pages (new — pre-launch requirement)
@@ -105,7 +105,7 @@ outbid.lol ships Terms, Privacy, Rules, and an FAQ. ai-bid.lol is taking real pa
 | category | string (enum) | one of the 7 slugs |
 | logoUrl | string | Firebase Storage URL |
 | twitterHandle | string | optional |
-| email | string | required, **private — never included in any public API response or page prop** (see Section 12) |
+| email | string | required, **private — never included in any public API response or page prop** (see Section 12, Security Notes) |
 | totalBidUSD | number | indexed, cumulative sum of confirmed bids, drives ranking |
 | bidCount | number | |
 | clicks | number | new — incremented by `/go/[productId]` |
@@ -167,7 +167,7 @@ Dodo Payments is the sole payment processor, acting as Merchant of Record for bo
 
 ## 11. Non-Functional Requirements
 
-- **Data access:** all reads/writes go through server routes on the Admin SDK. `firestore.rules` denies all direct client access (`allow read, write: if false`) — keep this; do not relax it to enable client-side listeners.
+- **Data access:** all reads/writes go through server routes on the Admin SDK. Firestore rules deny all direct client access (`allow read, write: if false`) — keep this; do not relax it to enable client-side listeners.
 - **Real-time UI:** short-interval polling behind cached API routes, not `onSnapshot` (see 6.5). Confirmed final.
 - **Mobile-first:** most share-driven traffic lands from X/Twitter's in-app browser on mobile.
 - **OG images:** dynamic per product route via Next.js `ImageResponse`, cached at the edge. Needs the rank number wired in (currently a placeholder — see Section 13).
@@ -185,10 +185,9 @@ Dodo Payments is the sole payment processor, acting as Merchant of Record for bo
 1. Logo upload via Firebase Storage — submission flow currently leaves this out until Storage credentials are configured.
 2. Admin/moderation tooling for the report flow (Section 9).
 3. Rank number not yet wired into the OG image generator (Section 11).
-4. Click tracking (6.6) and stats strip (6.7) — specified in this revision, not yet built.
-5. Legal pages (6.8) — specified in this revision, not yet built.
+4. Production Firebase project, Dodo product ID, and webhook secret still need to be configured; no real payment has been run end-to-end yet.
+5. Automated integration/e2e coverage against Dodo test mode and the Firebase emulator is still required before launch.
 6. No rank-aware suggested bid amount in the UI (outbid.lol shows "claim this rank for $X" per row) — nice-to-have, not a blocker.
-7. Production Firebase project, Dodo product ID, and webhook secret still need to be configured; no real payment has been run end-to-end yet.
 
 ## 14. Success Metrics (first 7 days)
 
@@ -215,10 +214,10 @@ Dodo Payments is the sole payment processor, acting as Merchant of Record for bo
 3. ~~Submission flow~~ — done, needs logo upload
 4. ~~Leaderboard pages (all-time, category, today)~~ — done
 5. ~~Product detail pages + OG image~~ — done, rank number pending
-6. Fix the public-API field leak (Section 12) — do this first, before anything else below
-7. Click tracking (`/go/[productId]`) + click count display
-8. Stats strip + `stats/global` rollup
-9. Legal pages (Terms, Privacy, Rules, FAQ)
+6. ~~Fix the public-API field leak~~ — done
+7. ~~Click tracking (`/go/[productId]`) + click count display~~ — done
+8. ~~Stats strip + `stats/global` rollup~~ — done
+9. ~~Legal pages (Terms, Privacy, Rules, FAQ)~~ — done
 10. Logo upload, admin/report tooling
 11. Configure production Firebase + Dodo, run first real payment end-to-end
 12. Launch
