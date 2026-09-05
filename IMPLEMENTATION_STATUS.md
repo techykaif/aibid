@@ -15,11 +15,15 @@ The README is the product requirements document. The initial implementation is n
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
 - Atomic Firestore bid totals and daily rollups
+- Public product API field allowlist that keeps submitter email private
+- Tracked outbound product redirects at `/go/[productId]` with click counts
+- Public global market stats API and transactional stats rollup
 - Embeddable SVG rank badge endpoint
 - Dynamic product Open Graph image route
 - SEO sitemap and robots metadata
 - Firestore security rules and composite indexes
 - Environment variable template
+- Public Terms, Privacy, Rules, and FAQ pages
 
 ## Still required before production
 
