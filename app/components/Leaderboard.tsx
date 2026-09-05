@@ -25,12 +25,12 @@ export default async function Leaderboard({ category }: { category?: string }) {
   const products = await getProducts(category);
   return <section className="board">
     <div className="tabs"><Link className={`tab ${!category ? "active" : ""}`} href="/">All</Link>{CATEGORIES.map(item=><Link key={item.slug} className={`tab ${category===item.slug?"active":""}`} href={`/category/${item.slug}`}>{item.name.replace("AI ","")}</Link>)}</div>
-    <div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>POSITION</span><span>ACTION</span></div>
+    <div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>CURRENT BID</span><span>ACTION</span></div>
     {products.length===0 ? <div className="empty"><div className="empty-icon">✦</div><strong>The board is waiting.</strong><span>Be the first product to claim this category.</span></div> : products.map((product,index)=><div className={`row ${index<3?"top-row":""}`} key={product.id}>
       <div className={`rank rank-${index+1}`}>{index<3?["01","02","03"][index]:String(index+1).padStart(2,"0")}</div>
       <Link href={`/product/${product.id}`} className="product"><img className="logo" src={product.logoUrl||"/logo.svg"} alt=""/><div className="product-copy"><strong>{product.name}</strong><div className="muted">{product.tagline}</div></div></Link>
       <div className="count"><span className="activity-dot"/>{product.bidCount} bids</div><div className="bid">{money(product.totalBidUSD)}</div>
-      <Link href={`/product/${product.id}`} className="row-action" aria-label={`Bid on ${product.name}`}>Bid <span aria-hidden="true">→</span></Link>
+      <Link href={`/product/${product.id}`} className="row-action" aria-label={`View ${product.name} and bid`}>View &amp; bid <span aria-hidden="true">→</span></Link>
     </div>)}
     <div className="board-foot"><span>Showing {products.length} products</span><span>Ranked by confirmed cumulative bids</span></div>
   </section>;
