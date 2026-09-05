@@ -5,16 +5,22 @@ import SiteHeader from "./components/SiteHeader";
 
 export const revalidate = 15;
 
-async function getMarketStats() {
-  if (!isFirebaseConfigured) return { totalRevenueUSD: 0, totalProducts: 0, totalBids: 0 };
+const EMPTY_STATS = { totalRevenueUSD: 0, totalProducts: 0, totalBids: 0 };
 
-  const snapshot = await db.collection("stats").doc("global").get();
-  const data = snapshot.data() || {};
-  return {
-    totalRevenueUSD: Number(data.totalRevenueUSD || 0),
-    totalProducts: Number(data.totalProducts || 0),
-    totalBids: Number(data.totalBids || 0),
-  };
+async function getMarketStats() {
+  if (!isFirebaseConfigured) return EMPTY_STATS;
+
+  try {
+    const snapshot = await db.collection("stats").doc("global").get();
+    const data = snapshot.data() || {};
+    return {
+      totalRevenueUSD: Number(data.totalRevenueUSD || 0),
+      totalProducts: Number(data.totalProducts || 0),
+      totalBids: Number(data.totalBids || 0),
+    };
+  } catch {
+    return EMPTY_STATS;
+  }
 }
 
 const numberFormatter = new Intl.NumberFormat("en-US");
