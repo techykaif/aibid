@@ -1,10 +1,28 @@
 import Link from "next/link";
+import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import Leaderboard from "./components/Leaderboard";
 import SiteHeader from "./components/SiteHeader";
 
 export const revalidate = 15;
 
-export default function Home() {
+async function getMarketStats() {
+  if (!isFirebaseConfigured) return { totalRevenueUSD: 0, totalProducts: 0, totalBids: 0 };
+
+  const snapshot = await db.collection("stats").doc("global").get();
+  const data = snapshot.data() || {};
+  return {
+    totalRevenueUSD: Number(data.totalRevenueUSD || 0),
+    totalProducts: Number(data.totalProducts || 0),
+    totalBids: Number(data.totalBids || 0),
+  };
+}
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+const moneyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+export default async function Home() {
+  const stats = await getMarketStats();
+
   return <main className="shell">
     <SiteHeader />
     <div className="demo-banner" role="status"><span className="status-dot"/><b>PREVIEW MARKET</b><span>Payments are disabled until production credentials are connected.</span></div>
@@ -23,6 +41,16 @@ export default function Home() {
         <div className="preview-note">Illustrative preview using the current leaderboard demo data.</div>
       </div>
     </header>
+
+    <section className="ticker" aria-label="Ai-Bid market statistics">
+      <b>MARKET STATS</b><span className="ticker-sep">/</span>
+      <span>{moneyFormatter.format(stats.totalRevenueUSD)} bid volume</span>
+      <span className="ticker-sep">/</span>
+      <span>{numberFormatter.format(stats.totalProducts)} products</span>
+      <span className="ticker-sep">/</span>
+      <span>{numberFormatter.format(stats.totalBids)} confirmed bids</span>
+      <span className="ticker-right">15s refresh</span>
+    </section>
 
     <section className="market-primer" aria-label="How Ai-Bid works">
       <div className="primer-label"><span className="section-kicker">THE MARKET, IN 3 MOVES</span><span>Simple rules. Public signal.</span></div>
