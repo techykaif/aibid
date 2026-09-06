@@ -14,6 +14,11 @@ export async function GET(
   }
 
   const productRef = db.collection("products").doc(productId);
+  const initialSnapshot = await productRef.get();
+  if (!initialSnapshot.exists || initialSnapshot.data()?.status !== "live") {
+    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+  }
+
   const destination = await db.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(productRef);
     if (!snapshot.exists || snapshot.data()?.status !== "live") return null;
