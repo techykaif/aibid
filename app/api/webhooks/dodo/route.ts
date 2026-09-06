@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       !productId ||
       !paymentId ||
       currency !== "USD" ||
+      !expectedDodoProductId ||
       cart.length !== 1 ||
       !cartItem ||
       cartQuantity !== 1 ||
@@ -60,23 +61,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment payload" }, { status: 400 });
     }
 
-    if (expectedDodoProductId && String(cartItem.product_id || "") !== expectedDodoProductId) {
+    if (String(cartItem.product_id || "") !== expectedDodoProductId) {
       return NextResponse.json({ error: "Invalid payment product" }, { status: 400 });
     }
 
     const amountUSD = cartAmountCents / 100;
     const metadataBidUSD = Number(metadata.bidUSD);
-    if (Number.isFinite(metadataBidUSD) && Math.abs(metadataBidUSD - amountUSD) > 0.001) {
+    if (!Number.isFinite(metadataBidUSD) || Math.abs(metadataBidUSD - amountUSD) > 0.001) {
       return NextResponse.json({ error: "Payment amount mismatch" }, { status: 400 });
     }
 
-    const minimumUSD = metadata.kind === "new_product" ? 5 : 1;
-    if (!Number.isFinite(amountUSD) || amountUSD < minimumUSD) {
-      return NextResponse.json({ error: "Payment amount below the required minimum" }, { status: 400 });
+    const kind = metadata.kind;
+    if (kind !== "new_product" && kind !== "bid") {
+      return NextResponse.json({ error: "Invalid payment kind" }, { status: 400 });
     }
 
-    if (metadata.kind !== "new_product" && metadata.kind !== "bid") {
-      return NextResponse.json({ error: "Invalid payment kind" }, { status: 400 });
+    const minimumUSD = kind === "new_product" ? 5 : 1;
+    if (!Number.isFinite(amountUSD) || amountUSD < minimumUSD) {
+      return NextResponse.json({ error: "Payment amount below the required minimum" }, { status: 400 });
     }
 
     const bidRef = db.collection("bids").doc(paymentId);
@@ -94,10 +96,10 @@ export async function POST(request: Request) {
       if (!productSnap.exists) throw new Error("Product not found");
       const product = productSnap.data()!;
 
-      if (metadata.kind === "new_product" && product.status !== "pending") {
+      if (kind === "new_product" && product.status !== "pending") {
         throw new Error("Product is no longer pending");
       }
-      if (metadata.kind === "bid" && product.status !== "live") {
+      if (kind === "bid" && product.status !== "live") {
         throw new Error("Product is no longer live");
       }
 
