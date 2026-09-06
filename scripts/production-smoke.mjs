@@ -38,4 +38,13 @@ for (const [name, path] of checks) {
   console.log(`PASS ${name}: HTTP ${response.status}`);
 }
 
+const invalidRedirect = await fetch(new URL("/go/__production-smoke_invalid_product__", baseUrl), {
+  redirect: "manual",
+  headers: { "user-agent": "Ai-Bid-Production-Smoke/1.0" },
+});
+if (invalidRedirect.status !== 404) {
+  throw new Error(`invalid product redirect returned HTTP ${invalidRedirect.status}, expected 404`);
+}
+console.log("PASS invalid product redirect: HTTP 404");
+
 console.log(`Production smoke checks passed for ${baseUrl}`);
