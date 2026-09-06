@@ -8,7 +8,19 @@
 
 ## 1. Overview
 
-ai-bid.lol is a pay-to-rank public leaderboard for AI tools and AI-built products, modeled on outbid.lol's mechanic and scoped to a single audience. Anyone can list a product and pay to climb the board; highest cumulative bid holds the top spot in its category. The product is split into category sub-boards with permanent, SEO-indexable product pages, so it works as a viral mechanic in week one and a real directory after the novelty fades.
+ai-bid.lol is a pay-to-rank public leaderboard for AI tools and AI-built products, modeled on outbid.lol's mechanic and scoped initially to a single audience. Anyone can list a product and pay to climb the board; highest cumulative bid holds the top spot in its category. The product is split into category sub-boards with permanent, SEO-indexable product pages, so it works as a viral mechanic in week one and a real directory after the novelty fades.
+
+The long-term product is designed as a reusable **visibility market** rather than a collection of unrelated directories. The initial market is AI. Games are the next planned expansion, followed by Open Source and Music. These are roadmap phases only and must not introduce mock/demo listings or prematurely alter the launch market.
+
+### Future market roadmap
+
+1. **AI** — current launch market
+2. **Games** — first expansion
+3. **Open Source** — developer/community expansion
+4. **Music** — artist/fan expansion
+5. Additional markets only after the core mechanic and earlier expansions are validated
+
+Future markets should reuse the same core primitives — submission, paid ranking, permanent product pages, shareable rank changes, stats, moderation, and verified payments — while keeping each market's taxonomy and presentation appropriate to its audience.
 
 ## 2. Goals
 
@@ -16,6 +28,7 @@ ai-bid.lol is a pay-to-rank public leaderboard for AI tools and AI-built product
 - Generate real bidding activity and shareable "I got outbid" moments
 - Leave behind a durable, search-indexable AI-tools directory
 - Match the trust/transparency signals that made outbid.lol credible (live stats, click counts, legal pages) — these are load-bearing, not decoration
+- Keep the architecture extensible so future markets can be added without compromising the launch market
 
 ### Non-Goals
 
@@ -91,6 +104,8 @@ Dodo Payments as sole processor, Merchant of Record, USD only. See Section 8.
 5. AI Agents & Automation
 6. AI Productivity & Chat
 7. Other / Uncategorized
+
+These are the launch-market categories. Future markets must not be represented as live categories until their phase is intentionally implemented.
 
 ## 7. Data Model (Firestore)
 
@@ -219,3 +234,5 @@ html.dark {
 8. Run one real end-to-end payment in test mode, then production
 9. Basic integration tests against Dodo test mode + Firebase emulator
 10. Launch
+
+Future market implementation must start only after the launch market is stable. **Phase 2 is Games, Phase 3 is Open Source, and Phase 4 is Music.** Each phase should be implemented as a deliberate market extension rather than adding dormant/mock categories to production.
