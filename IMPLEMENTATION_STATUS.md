@@ -27,7 +27,7 @@
 - Public product API field allowlist that keeps submitter email private
 - `/api/today` now also uses an explicit public field allowlist; it does not spread private Firestore fields
 - Public products API and leaderboard reads remain functional even if the production composite ranking indexes are not deployed yet: bounded equality-only Firestore reads are filtered/sorted server-side
-- Tracked outbound product redirects at `/go/[productId]` with click counts
+- Tracked outbound product redirects at `/go/[productId]` with click counts; missing/non-live products are rejected before entering the click-counting transaction
 - Public global market stats API and transactional stats rollup
 - Homepage market stats strip backed by the verified `stats/global` rollup
 - Embeddable SVG rank badge endpoint
@@ -61,7 +61,7 @@ The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Fi
 
 The production smoke workflow initially exposed a real `/api/products` HTTP 500 on the deployed revision because the ranking query depended on a composite index that was not available at runtime. The public products API and server-rendered leaderboard were changed to use bounded equality-only reads with deterministic in-memory filtering/sorting as a safe fallback. The subsequent `main` smoke run completed successfully, including the products API, confirming the deployed public read path is healthy without requiring that composite index to be present.
 
-The smoke suite now also asserts that a clearly invalid `/go/[productId]` path returns HTTP 404 rather than redirecting, adding a production regression check around the outbound redirect boundary.
+A later production smoke run exposed another real `/go/[productId]` failure: the invalid-product regression check returned HTTP 500 instead of 404 while the homepage, Today/products/stats APIs, SEO endpoints, and legal pages all returned 200. The outbound route was changed to perform a normal document existence/status read before starting the click-counting transaction, so missing/non-live products are rejected without entering a no-op transaction. The transaction still re-reads the product before atomically incrementing clicks and validating the HTTP(S) destination. The fix is on `main` as commit `a8fc9933ae0f452fbe80de1e5fa0fc61d085c961`; the new production smoke result is pending and has not been claimed as passing.
 
 ## Payment safety
 
