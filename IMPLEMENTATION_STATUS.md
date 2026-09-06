@@ -49,6 +49,18 @@
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, and invalid outbound product IDs; it runs on every main-branch push and can be dispatched manually
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 
+## Product expansion roadmap
+
+The launch market remains AI. Future markets are deliberately not enabled as dormant/mock production categories.
+
+1. **AI** — current launch market
+2. **Games** — first expansion
+3. **Open Source** — third phase / developer-community market
+4. **Music** — fourth phase / artist-community market
+5. Additional markets only after the earlier phases and core marketplace mechanic are validated
+
+Future markets should reuse the verified submission, payment, ranking, product-page, sharing, stats, click-tracking, and moderation primitives rather than creating separate payment or ranking systems.
+
 ## Remaining launch requirements from PRD v3
 
 1. Deploy and verify the configured production Firebase Storage bucket and Storage rules; the code and default-deny rules are present, but live upload behavior still needs deployment/runtime verification.
