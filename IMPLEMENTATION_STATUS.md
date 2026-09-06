@@ -20,6 +20,8 @@
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
 - Webhook ranking totals derived from the signed Dodo product-cart amount rather than client metadata
+- Webhook cart validation requires exactly one expected product item and quantity 1
+- Webhook enforces the $5 new-product / $1 existing-product minimum based on the signed payment context
 - Atomic Firestore bid totals and daily rollups
 - Public product API field allowlist that keeps submitter email private
 - `/api/today` now also uses an explicit public field allowlist; it does not spread private Firestore fields
@@ -56,7 +58,7 @@ The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Fi
 
 ## Payment safety
 
-The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's signed webhook product-cart amount is the source used for the recorded bid amount; metadata is only cross-checked for consistency.
+The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's signed webhook product-cart amount is the source used for the recorded bid amount; metadata is only cross-checked for consistency. The webhook also rejects malformed multi-item/quantity payloads and amounts below the applicable minimum.
 
 ## Measurement and privacy safety
 
