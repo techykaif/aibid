@@ -11,6 +11,8 @@
 - Daily leaderboard (`/today`) with UTC reset semantics
 - Product detail pages and bid history
 - Anonymous product submission flow
+- Submission-time product URL reachability check with bounded timeout
+- Submission-time basic profanity filter for product name and tagline
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
@@ -40,15 +42,14 @@
 
 1. Consolidate all UI CSS into `app/globals.css`, remove the extra stylesheet imports/files, and eliminate every `!important`; preserve both intentional light and dark themes while satisfying `AGENTS.md` constraints.
 2. Add Firebase Storage logo upload and verify the production Storage bucket/rules.
-3. Verify and wire submission-time URL-resolution and profanity checks.
-4. Verify production Firebase project, Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
-5. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
-6. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-7. Verify the deployed production runtime after the latest changes and complete the end-to-end launch journeys before declaring launch-ready.
+3. Verify production Firebase project, Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
+4. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
+5. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
+6. Verify the deployed production runtime after the latest changes and complete the end-to-end launch journeys before declaring launch-ready.
 
 ## Current production verification blocker
 
-The latest Vercel runtime audit found one production error on `/api/today`: `SERVICE_DISABLED` / `PERMISSION_DENIED` because the Cloud Firestore API is disabled or not yet enabled for the configured Firebase project. This is a Google Cloud service configuration issue, not a missing client-side environment variable. A subsequent production runtime-log check over the following three hours showed no additional error entries, but the underlying Firestore service configuration has not been independently confirmed fixed. Until Firestore is enabled and propagation completes, the live market cannot be declared healthy.
+The latest independently recorded Vercel runtime audit found one production error on `/api/today`: `SERVICE_DISABLED` / `PERMISSION_DENIED` because the Cloud Firestore API was disabled or not yet enabled for the configured Firebase project. A subsequent production runtime-log check over the following three hours showed no additional error entries, but the underlying Firestore service configuration has not been independently confirmed fixed. This remains an explicit verification item until a fresh production read confirms healthy Firestore access.
 
 ## Payment safety
 
