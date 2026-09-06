@@ -17,11 +17,51 @@ const schema = z.object({
 
 const categories = ["coding", "writing", "image", "video", "agents", "productivity", "other"];
 
+const PROFANITY = [
+  "fuck",
+  "shit",
+  "bitch",
+  "cunt",
+  "nigger",
+  "nigga",
+  "faggot",
+  "fag",
+  "slut",
+  "whore",
+];
+
+function containsProfanity(value: string) {
+  const normalized = value.toLowerCase().replace(/[^a-z]+/g, " ");
+  return PROFANITY.some((term) => new RegExp(`(?:^|\\s)${term}(?:$|\\s)`).test(normalized));
+}
+
+async function urlResolves(url: string) {
+  try {
+    const response = await fetch(url, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: AbortSignal.timeout(5000),
+      headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" },
+    });
+    return response.status < 500;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const input = schema.parse(await request.json());
     if (!categories.includes(input.category)) {
       return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    }
+
+    if (containsProfanity(`${input.name} ${input.tagline}`)) {
+      return NextResponse.json({ error: "Please remove inappropriate language from the product name or tagline." }, { status: 400 });
+    }
+
+    if (!(await urlResolves(input.url))) {
+      return NextResponse.json({ error: "That product URL could not be reached. Please check the URL and try again." }, { status: 400 });
     }
 
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
