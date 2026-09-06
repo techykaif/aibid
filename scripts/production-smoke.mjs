@@ -38,7 +38,8 @@ for (const [name, path] of checks) {
   console.log(`PASS ${name}: HTTP ${response.status}`);
 }
 
-const invalidRedirect = await fetch(new URL("/go/__production-smoke_invalid_product__", baseUrl), {
+const invalidProductId = "production-smoke-invalid-product-9f6e4d7a";
+const invalidRedirect = await fetch(new URL(`/go/${invalidProductId}`, baseUrl), {
   redirect: "manual",
   headers: { "user-agent": "Ai-Bid-Production-Smoke/1.0" },
 });
