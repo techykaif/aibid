@@ -13,6 +13,9 @@
 - Anonymous product submission flow
 - Submission-time product URL reachability check with bounded timeout
 - Submission-time basic profanity filter for product name and tagline
+- Firebase Storage logo upload from the submission flow with PNG/JPG/SVG validation and a 2MB limit
+- Server-side signed logo URLs with cleanup on failed checkout creation
+- Firebase Storage default-deny security rules; browser/client Storage access remains blocked
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
@@ -41,15 +44,14 @@
 ## Remaining launch requirements from PRD v3
 
 1. Consolidate all UI CSS into `app/globals.css`, remove the extra stylesheet imports/files, and eliminate every `!important`; preserve both intentional light and dark themes while satisfying `AGENTS.md` constraints.
-2. Add Firebase Storage logo upload and verify the production Storage bucket/rules.
-3. Verify production Firebase Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
-4. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
-5. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-6. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
+2. Verify the configured production Firebase Storage bucket and deploy/verify the Storage rules without exposing credentials.
+3. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
+4. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
+5. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
 
 ## Current production verification
 
-The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is now cleared at runtime. A fresh production deployment read of `/api/today` returned HTTP 200 with an empty JSON array, confirming the configured server-side Firestore path is reachable. Production runtime error aggregation for the latest six-hour window also returned no error entries. The live market is currently empty rather than populated with fabricated/demo data.
+The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is cleared at runtime. A fresh production deployment read of `/api/today` returned HTTP 200 with an empty JSON array, confirming the configured server-side Firestore path is reachable. Production runtime error aggregation for the latest verified window also returned no error entries. The live market is currently empty rather than populated with fabricated/demo data.
 
 ## Payment safety
 
