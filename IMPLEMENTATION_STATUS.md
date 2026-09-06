@@ -44,7 +44,7 @@
 ## Remaining launch requirements from PRD v3
 
 1. Consolidate all UI CSS into `app/globals.css`, remove the extra stylesheet imports/files, and eliminate every `!important`; preserve both intentional light and dark themes while satisfying `AGENTS.md` constraints.
-2. Verify the configured production Firebase Storage bucket and deploy/verify the Storage rules without exposing credentials.
+2. Deploy and verify the configured production Firebase Storage bucket and Storage rules; the code and default-deny rules are now present, but this run cannot claim the live bucket configuration is verified until the new deployment is serving the upload path.
 3. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
 4. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
 5. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
