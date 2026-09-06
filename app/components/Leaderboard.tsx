@@ -8,10 +8,16 @@ async function getProducts(category?: string) {
   if (!isFirebaseConfigured) return [] as Product[];
 
   try {
-    let query: FirebaseFirestore.Query = db.collection("products").where("status", "==", "live");
-    if (category && CATEGORIES.some((c) => c.slug === category)) query = query.where("category", "==", category);
-    const snap = await query.orderBy("totalBidUSD", "desc").limit(50).get();
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+    const validCategory = category && CATEGORIES.some((c) => c.slug === category) ? category : null;
+    const snap = validCategory
+      ? await db.collection("products").where("category", "==", validCategory).limit(1000).get()
+      : await db.collection("products").where("status", "==", "live").limit(1000).get();
+
+    return snap.docs
+      .filter((doc) => doc.data().status === "live")
+      .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0))
+      .slice(0, 50)
+      .map((d) => ({ id: d.id, ...d.data() } as Product));
   } catch {
     return [] as Product[];
   }
