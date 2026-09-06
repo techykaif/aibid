@@ -1,6 +1,6 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
-import { getStorage, type Storage } from "firebase-admin/storage";
+import { getStorage } from "firebase-admin/storage";
 
 export const isFirebaseConfigured = Boolean(
   process.env.FIREBASE_PROJECT_ID &&
