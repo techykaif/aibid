@@ -30,18 +30,22 @@
 - Homepage footer links to legal/trust pages
 - Production pages no longer fall back to demo products or fabricated market activity; unavailable/empty Firestore states render honest empty or configuration states
 - Daily leaderboard and product pages fail safely when Firestore is unavailable instead of breaking prerendering
+- Homepage hero CTAs now use one consistent arrow glyph and non-kicker section labels
 
 ## Remaining launch requirements from PRD v3
 
 1. Consolidate all UI CSS into `app/globals.css`, remove the extra stylesheet imports/files, and eliminate every `!important`; preserve both intentional light and dark themes while satisfying `AGENTS.md` constraints.
-2. Standardize the hero CTA arrow glyph.
-3. Add the product report link and reactive admin/moderation/unpublish tooling.
-4. Add logo upload through Firebase Storage.
-5. Verify and wire submission-time URL-resolution and profanity checks.
-6. Verify production Firebase project, Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
-7. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
-8. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-9. Verify the deployed production runtime after the latest changes and complete the end-to-end launch journeys before declaring launch-ready.
+2. Add the product report link and reactive admin/moderation/unpublish tooling with a real protected admin boundary.
+3. Add logo upload through Firebase Storage.
+4. Verify and wire submission-time URL-resolution and profanity checks.
+5. Verify production Firebase project, Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
+6. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
+7. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
+8. Verify the deployed production runtime after the latest changes and complete the end-to-end launch journeys before declaring launch-ready.
+
+## Current production verification blocker
+
+The latest Vercel production runtime audit reached the configured Firebase project but Firestore returned `SERVICE_DISABLED` / `PERMISSION_DENIED` because the Cloud Firestore API is disabled or not yet enabled for that project. This is a production Google Cloud configuration issue, not a missing client-side environment variable. Until Firestore is enabled for the configured project (and propagation completes), `/api/today` cannot read the live market and the production launch cannot be declared healthy.
 
 ## Payment safety
 
