@@ -42,14 +42,14 @@
 
 1. Consolidate all UI CSS into `app/globals.css`, remove the extra stylesheet imports/files, and eliminate every `!important`; preserve both intentional light and dark themes while satisfying `AGENTS.md` constraints.
 2. Add Firebase Storage logo upload and verify the production Storage bucket/rules.
-3. Verify production Firebase project, Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
+3. Verify production Firebase Storage bucket, indexes, and rules deployment using the configured environment without exposing credentials.
 4. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
 5. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-6. Verify the deployed production runtime after the latest changes and complete the end-to-end launch journeys before declaring launch-ready.
+6. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
 
-## Current production verification blocker
+## Current production verification
 
-The latest independently recorded Vercel runtime audit found one production error on `/api/today`: `SERVICE_DISABLED` / `PERMISSION_DENIED` because the Cloud Firestore API was disabled or not yet enabled for the configured Firebase project. A subsequent production runtime-log check over the following three hours showed no additional error entries, but the underlying Firestore service configuration has not been independently confirmed fixed. This remains an explicit verification item until a fresh production read confirms healthy Firestore access.
+The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is now cleared at runtime. A fresh production deployment read of `/api/today` returned HTTP 200 with an empty JSON array, confirming the configured server-side Firestore path is reachable. Production runtime error aggregation for the latest six-hour window also returned no error entries. The live market is currently empty rather than populated with fabricated/demo data.
 
 ## Payment safety
 
