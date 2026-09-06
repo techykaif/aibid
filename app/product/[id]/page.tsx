@@ -72,6 +72,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <div className="stat"><b>{clicks.toLocaleString()}</b> clicks</div>
         </div>
         <a className="button" href={`/go/${product.id}`} target="_blank" rel="noreferrer">Visit product ↗</a>
+        <div style={{ marginTop: 14 }}><a className="text-link" href={`/report?product=${encodeURIComponent(product.id)}`}>Report this listing <span>→</span></a></div>
       </article>
       <aside className="metric">
         <div className="metric-label">Current position</div>
