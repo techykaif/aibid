@@ -37,12 +37,20 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || 50), 1), 100);
+  const validCategory = category && CATEGORIES.some((item) => item.slug === category) ? category : null;
 
-  let query: FirebaseFirestore.Query = db.collection("products").where("status", "==", "live");
-  if (category && CATEGORIES.some((item) => item.slug === category)) query = query.where("category", "==", category);
-  query = query.orderBy("totalBidUSD", "desc").limit(limit);
+  // Keep the public read path resilient if the production composite indexes have
+  // not been deployed yet. Equality-only reads use Firestore's single-field
+  // indexes; ranking is deterministic in memory for the bounded public result.
+  const snapshot = validCategory
+    ? await db.collection("products").where("category", "==", validCategory).limit(1000).get()
+    : await db.collection("products").where("status", "==", "live").limit(1000).get();
 
-  const snapshot = await query.get();
-  const products = snapshot.docs.map((doc) => toPublicProduct(doc.id, doc.data()));
+  const products = snapshot.docs
+    .filter((doc) => doc.data().status === "live")
+    .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0))
+    .slice(0, limit)
+    .map((doc) => toPublicProduct(doc.id, doc.data()));
+
   return NextResponse.json(products, { headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60" } });
 }
