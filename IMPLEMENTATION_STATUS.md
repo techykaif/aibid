@@ -44,6 +44,7 @@
 - Firestore composite index for open moderation reports
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
+- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, and absence of private email fields; it runs on every main-branch push and can be dispatched manually
 
 ## Remaining launch requirements from PRD v3
 
