@@ -5,14 +5,6 @@ import BidForm from "@/app/components/BidForm";
 import SiteHeader from "@/app/components/SiteHeader";
 
 export const revalidate = 30;
-const demo: Product[] = [
-  { id:"demo-1", name:"Cursor", url:"https://cursor.com", tagline:"The AI code editor built for pair programming with models.", description:"A fast, focused coding environment where AI sits inside the editor.", category:"coding", totalBidUSD:2480, bidCount:42, clicks:0, status:"live" },
-  { id:"demo-2", name:"Perplexity", url:"https://perplexity.ai", tagline:"Search, research and answer with AI at the center.", category:"productivity", totalBidUSD:1920, bidCount:31, clicks:0, status:"live" },
-  { id:"demo-3", name:"Lovable", url:"https://lovable.dev", tagline:"Build production-ready apps by chatting with AI.", category:"coding", totalBidUSD:1540, bidCount:27, clicks:0, status:"live" },
-  { id:"demo-4", name:"Runway", url:"https://runwayml.com", tagline:"Generative video tools for the next generation of creators.", category:"video", totalBidUSD:1120, bidCount:19, clicks:0, status:"live" },
-  { id:"demo-5", name:"v0", url:"https://v0.dev", tagline:"Turn ideas into polished interfaces with generative UI.", category:"coding", totalBidUSD:860, bidCount:14, clicks:0, status:"live" },
-  { id:"demo-6", name:"Gamma", url:"https://gamma.app", tagline:"Create beautiful decks and docs without the busywork.", category:"writing", totalBidUSD:640, bidCount:11, clicks:0, status:"live" },
-];
 
 const publicProduct = (id: string, data: FirebaseFirestore.DocumentData): Product => ({
   id,
@@ -33,19 +25,16 @@ const publicProduct = (id: string, data: FirebaseFirestore.DocumentData): Produc
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  let product: Product | undefined;
-  let bids = [420, 260, 180];
-  let rank: number | undefined;
 
   if (!isFirebaseConfigured) {
-    product = demo.find(p => p.id === id);
-    if (!product) notFound();
-    const position = demo
-      .filter(p => p.category === product!.category)
-      .sort((a, b) => b.totalBidUSD - a.totalBidUSD)
-      .findIndex(p => p.id === product!.id);
-    rank = position >= 0 ? position + 1 : undefined;
-  } else {
+    return <main className="shell"><SiteHeader/><section className="empty" style={{ marginTop: 80 }}><div className="empty-icon">✦</div><strong>The market is not connected yet.</strong><span>Product pages will appear when the production market is connected.</span></section></main>;
+  }
+
+  let product: Product;
+  let bids: number[] = [];
+  let rank: number | undefined;
+
+  try {
     const snap = await db.collection("products").doc(id).get();
     if (!snap.exists || snap.data()?.status !== "live") notFound();
     product = publicProduct(snap.id, snap.data()!);
@@ -55,15 +44,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       .where("category", "==", product.category)
       .orderBy("totalBidUSD", "desc")
       .get();
-    const position = ranked.docs.findIndex(d => d.id === id);
+    const position = ranked.docs.findIndex((d) => d.id === id);
     rank = position >= 0 ? position + 1 : undefined;
 
     const bs = await db.collection("bids").where("productId", "==", id).where("status", "==", "confirmed").orderBy("createdAt", "desc").limit(20).get();
-    bids = bs.docs.map(d => Number(d.data().amountUSD || 0));
+    bids = bs.docs.map((d) => Number(d.data().amountUSD || 0));
+  } catch {
+    return <main className="shell"><SiteHeader/><section className="empty" style={{ marginTop: 80 }}><div className="empty-icon">✦</div><strong>Product data is temporarily unavailable.</strong><span>Please try again shortly.</span></section></main>;
   }
 
-  const category = CATEGORIES.find(c => c.slug === product!.category)?.name || "AI Tools";
-  const clicks = Number(product!.clicks || 0);
+  const category = CATEGORIES.find((c) => c.slug === product.category)?.name || "AI Tools";
+  const clicks = Number(product.clicks || 0);
 
   return <main className="shell">
     <SiteHeader />
@@ -71,16 +62,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       <article className="product-card">
         <div className="eyebrow">{category}</div>
         <div className="product" style={{ marginTop: 18 }}>
-          <img className="logo" src={product!.logoUrl || "/logo.svg"} alt="" />
-          <div><h1>{product!.name}</h1><div className="muted">{product!.tagline}</div></div>
+          <img className="logo" src={product.logoUrl || "/logo.svg"} alt="" />
+          <div><h1>{product.name}</h1><div className="muted">{product.tagline}</div></div>
         </div>
-        <p>{product!.description || product!.tagline}</p>
+        <p>{product.description || product.tagline}</p>
         <div className="stats" style={{ justifyContent: "flex-start" }}>
-          <div className="stat"><b>${Number(product!.totalBidUSD).toLocaleString()}</b> total bid</div>
-          <div className="stat"><b>{product!.bidCount}</b> bids</div>
+          <div className="stat"><b>${Number(product.totalBidUSD).toLocaleString()}</b> total bid</div>
+          <div className="stat"><b>{product.bidCount}</b> bids</div>
           <div className="stat"><b>{clicks.toLocaleString()}</b> clicks</div>
         </div>
-        <a className="button" href={`/go/${product!.id}`} target="_blank" rel="noreferrer">Visit product ↗</a>
+        <a className="button" href={`/go/${product.id}`} target="_blank" rel="noreferrer">Visit product ↗</a>
       </article>
       <aside className="metric">
         <div className="metric-label">Current position</div>
@@ -89,12 +80,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <div className="muted" style={{ whiteSpace: "normal", lineHeight: 1.5 }}>Add a confirmed bid to push the product higher.</div>
       </aside>
     </div>
-    <BidForm productId={id} currentTotal={Number(product!.totalBidUSD)} />
+    <BidForm productId={id} currentTotal={Number(product.totalBidUSD)} />
     <section className="board" style={{ marginTop: 20 }}>
       <div className="boardhead"><div><strong>Bid activity</strong><div className="muted">Recent confirmed moves</div></div></div>
-      {bids.map((amount, i) => <div className="row" key={i}>
+      {bids.length === 0 ? <div className="empty"><div className="empty-icon">✦</div><strong>No confirmed bids yet.</strong><span>The first confirmed bid will appear here.</span></div> : bids.map((amount, i) => <div className="row" key={`${amount}-${i}`}>
         <div className="rank">✦</div>
-        <div className="product"><img className="logo" src="/logo.svg" alt=""/><div><strong>{i === 0 ? "Builder #104" : i === 1 ? "Anonymous" : "Maya"}</strong><div className="muted">Recent bid</div></div></div>
+        <div className="product"><img className="logo" src="/logo.svg" alt=""/><div><strong>Anonymous</strong><div className="muted">Confirmed bid</div></div></div>
         <div className="count" />
         <div className="bid">+${amount.toLocaleString()}</div>
       </div>)}
