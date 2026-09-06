@@ -7,14 +7,34 @@ import SiteHeader from "@/app/components/SiteHeader";
 
 export default function SubmitPage() {
   const [form, setForm] = useState({ name:"", url:"", tagline:"", description:"", category:"coding", email:"", twitterHandle:"", bid:"5" });
-  const [preview, setPreview] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const update = (key: string, value: string) => setForm(v => ({ ...v, [key]: value }));
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Checkout unavailable");
+      if (!data.checkout_url) throw new Error("Checkout URL was not returned.");
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+      setLoading(false);
+    }
+  }
 
   return <main className="shell">
     <SiteHeader />
-    <div className="demo-banner" role="status"><b>PREVIEW MODE</b><span>Payments are intentionally offline while we finish the UI.</span></div>
     <div className="submit-grid">
-      <form className="form" onSubmit={e => { e.preventDefault(); setPreview(true); }}>
+      <form className="form" onSubmit={submit}>
         <div className="eyebrow">List your product</div>
         <h1>Buy your place on the board.</h1>
         <p className="muted" style={{ whiteSpace:"normal", lineHeight:1.6 }}>Every listing starts with a bid. Choose your category, tell people what you built, then compete for attention.</p>
@@ -28,8 +48,9 @@ export default function SubmitPage() {
         <div className="field"><label htmlFor="twitter-handle">X handle <span className="muted">optional</span></label><input id="twitter-handle" name="twitterHandle" autoComplete="off" spellCheck={false} value={form.twitterHandle} onChange={e => update("twitterHandle", e.target.value)} placeholder="@yourproduct" /></div>
         <div className="field"><label htmlFor="opening-bid">Opening bid</label><input id="opening-bid" name="bid" type="number" inputMode="decimal" min="5" step="1" required value={form.bid} onChange={e => update("bid", e.target.value)} /></div>
 
-        <button className="button primary" type="submit">Preview listing · ${Number(form.bid || 0).toFixed(0)} →</button>
-        {preview && <p className="success" role="status">Looks good. Checkout will be enabled after credentials are connected.</p>}
+        <button className="button primary" type="submit" disabled={loading}>{loading ? "Opening secure checkout…" : `Continue to checkout · $${Number(form.bid || 0).toFixed(0)} →`}</button>
+        {error && <p className="bid-error" role="alert">{error}</p>}
+        <p className="muted bid-note">One-time bid · minimum $5 · payment verified by webhook</p>
       </form>
       <aside className="form-aside">
         <div className="eyebrow">How it works</div>
