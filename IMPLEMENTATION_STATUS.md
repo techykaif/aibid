@@ -45,7 +45,7 @@
 - Firestore composite index for open moderation reports
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
-- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, and absence of private email fields; it runs on every main-branch push and can be dispatched manually
+- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, and invalid outbound product IDs; it runs on every main-branch push and can be dispatched manually
 
 ## Remaining launch requirements from PRD v3
 
@@ -59,6 +59,8 @@
 The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is cleared at runtime. A fresh production deployment read of `/api/today` returned HTTP 200 with an empty JSON array, confirming the configured server-side Firestore path is reachable. Production runtime error aggregation for the latest verified window also returned no error entries. The live market is currently empty rather than populated with fabricated/demo data.
 
 The production smoke workflow initially exposed a real `/api/products` HTTP 500 on the deployed revision because the ranking query depended on a composite index that was not available at runtime. The public products API and server-rendered leaderboard were changed to use bounded equality-only reads with deterministic in-memory filtering/sorting as a safe fallback. The subsequent `main` smoke run completed successfully, including the products API, confirming the deployed public read path is healthy without requiring that composite index to be present.
+
+The smoke suite now also asserts that a clearly invalid `/go/[productId]` path returns HTTP 404 rather than redirecting, adding a production regression check around the outbound redirect boundary.
 
 ## Payment safety
 
