@@ -2,7 +2,30 @@ import Link from "next/link";
 import SiteHeader from "@/app/components/SiteHeader";
 import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import type { Product } from "@/lib/types";
-const demo:Product[]=[{id:"demo-3",name:"Lovable",url:"https://lovable.dev",tagline:"Build production-ready apps by chatting with AI.",category:"coding",totalBidUSD:1540,bidCount:27,status:"live"},{id:"demo-5",name:"v0",url:"https://v0.dev",tagline:"Turn ideas into polished interfaces with generative UI.",category:"coding",totalBidUSD:860,bidCount:14,status:"live"},{id:"demo-4",name:"Runway",url:"https://runwayml.com",tagline:"Generative video tools for the next generation of creators.",category:"video",totalBidUSD:620,bidCount:9,status:"live"}];
-export const revalidate=15;
-export default async function Today(){let items=demo;if(isFirebaseConfigured){const date=new Date().toISOString().slice(0,10);const stats=await db.collection("dailyStats").doc(date).collection("entries").orderBy("totalBidTodayUSD","desc").limit(50).get();const rows=await Promise.all(stats.docs.map(async d=>{const p=await db.collection("products").doc(d.id).get();return p.exists&&p.data()?.status==="live"?{id:p.id,...p.data(),totalBidUSD:d.data().totalBidTodayUSD,bidCount:d.data().bidCountToday} as Product:null}));items=rows.filter(Boolean) as Product[];}
-return <main className="shell"><SiteHeader/><header className="hero"><div className="hero-copy"><div className="eyebrow">DAILY COMPETITION · UTC</div><h1>Today’s <span>board.</span></h1><p>A fresh race every day. Compete for #1 without fighting the all-time giants.</p></div></header><div className="ticker"><span className="live-dot"/><b>TODAY</b><span>·</span><span>The daily board resets at midnight UTC.</span></div><section className="market-section"><div className="boardhead"><div><div className="section-kicker">MARKET / TODAY</div><strong>Today’s leaderboard</strong><div className="muted">Only bids confirmed today count toward this board.</div></div><Link className="button" href="/submit">Enter the race →</Link></div><section className="board"><div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>POSITION</span></div>{items.map((p,i)=><div className={`row ${i===0?"top-row":""}`} key={p.id}><div className="rank rank-1">{String(i+1).padStart(2,"0")}</div><Link href={`/product/${p.id}`} className="product"><img className="logo" src={p.logoUrl||"/logo.svg"} alt=""/><div className="product-copy"><strong>{p.name}</strong><div className="muted">{p.tagline}</div></div></Link><div className="count"><span className="activity-dot"/>{p.bidCount} bids</div><div className="bid">${Number(p.totalBidUSD).toLocaleString()}</div></div>)}</section></section><footer className="footer"><span>Ai-Bid</span><span>A new race every day</span></footer></main>}
+
+export const revalidate = 15;
+
+async function getTodayProducts() {
+  if (!isFirebaseConfigured) return [] as Product[];
+
+  try {
+    const date = new Date().toISOString().slice(0, 10);
+    const stats = await db.collection("dailyStats").doc(date).collection("entries").orderBy("totalBidTodayUSD", "desc").limit(50).get();
+    const rows = await Promise.all(stats.docs.map(async (d) => {
+      const p = await db.collection("products").doc(d.id).get();
+      return p.exists && p.data()?.status === "live"
+        ? { id: p.id, ...p.data(), totalBidUSD: d.data().totalBidTodayUSD, bidCount: d.data().bidCountToday } as Product
+        : null;
+    }));
+    return rows.filter(Boolean) as Product[];
+  } catch {
+    return [] as Product[];
+  }
+}
+
+export default async function Today() {
+  const items = await getTodayProducts();
+  const marketUnavailable = !isFirebaseConfigured;
+
+  return <main className="shell"><SiteHeader/><header className="hero"><div className="hero-copy"><div className="eyebrow">DAILY COMPETITION · UTC</div><h1>Today’s <span>board.</span></h1><p>A fresh race every day. Compete for #1 without fighting the all-time giants.</p></div></header><div className="ticker"><span className="live-dot"/><b>TODAY</b><span>·</span><span>{marketUnavailable ? "The production market is not connected yet." : "The daily board resets at midnight UTC."}</span></div><section className="market-section"><div className="boardhead"><div><div className="section-kicker">MARKET / TODAY</div><strong>Today’s leaderboard</strong><div className="muted">Only bids confirmed today count toward this board.</div></div><Link className="button" href="/submit">Enter the race →</Link></div><section className="board"><div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>POSITION</span></div>{items.length === 0 ? <div className="empty"><div className="empty-icon">✦</div><strong>{marketUnavailable ? "Today’s market is not connected yet." : "No confirmed bids today."}</strong><span>{marketUnavailable ? "Live daily rankings will appear when the production market is connected." : "Be the first product to enter today’s race."}</span></div> : items.map((p, i) => <div className={`row ${i === 0 ? "top-row" : ""}`} key={p.id}><div className={`rank rank-${i + 1}`}>{String(i + 1).padStart(2, "0")}</div><Link href={`/product/${p.id}`} className="product"><img className="logo" src={p.logoUrl || "/logo.svg"} alt=""/><div className="product-copy"><strong>{p.name}</strong><div className="muted">{p.tagline}</div></div></Link><div className="count"><span className="activity-dot"/>{p.bidCount} bids</div><div className="bid">${Number(p.totalBidUSD).toLocaleString()}</div></div>)}</section></section><footer className="footer"><span>Ai-Bid</span><span>A new race every day</span></footer></main>;
+}
