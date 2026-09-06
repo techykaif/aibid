@@ -22,6 +22,7 @@
 - Webhook ranking totals derived from the signed Dodo product-cart amount rather than client metadata
 - Webhook cart validation requires exactly one expected product item and quantity 1
 - Webhook enforces the $5 new-product / $1 existing-product minimum based on the signed payment context
+- Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, avoiding misleading auth failures and unnecessary webhook retry pressure
 - Atomic Firestore bid totals and daily rollups
 - Public product API field allowlist that keeps submitter email private
 - `/api/today` now also uses an explicit public field allowlist; it does not spread private Firestore fields
@@ -64,7 +65,7 @@ The smoke suite now also asserts that a clearly invalid `/go/[productId]` path r
 
 ## Payment safety
 
-The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's signed webhook product-cart amount is the source used for the recorded bid amount; metadata is only cross-checked for consistency. The webhook also rejects malformed multi-item/quantity payloads and amounts below the applicable minimum.
+The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's signed webhook product-cart amount is the source used for the recorded bid amount; metadata is only cross-checked for consistency. The webhook also rejects malformed multi-item/quantity payloads and amounts below the applicable minimum. Signature verification failures are now separated from post-verification reconciliation failures so verified-but-invalid business state is not mislabeled as an authentication failure.
 
 ## Measurement and privacy safety
 
