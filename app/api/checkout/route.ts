@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db, getStorageBucket } from "@/lib/firebase-admin";
+import type { DocumentReference } from "firebase-admin/firestore";
 
 export const runtime = "nodejs";
 
@@ -17,11 +18,7 @@ const schema = z.object({
 
 const categories = ["coding", "writing", "image", "video", "agents", "productivity", "other"];
 const PROFANITY = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "faggot", "fag", "slut", "whore"];
-const LOGO_TYPES: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/svg+xml": "svg",
-};
+const LOGO_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/svg+xml": "svg" };
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 function containsProfanity(value: string) {
@@ -53,22 +50,15 @@ async function uploadLogo(file: File, productId: string) {
   const target = bucket.file(path);
   await target.save(Buffer.from(await file.arrayBuffer()), {
     resumable: false,
-    metadata: {
-      contentType: file.type,
-      cacheControl: "public,max-age=31536000,immutable",
-    },
+    metadata: { contentType: file.type, cacheControl: "public,max-age=31536000,immutable" },
   });
-
-  const [url] = await target.getSignedUrl({
-    action: "read",
-    expires: Date.now() + 365 * 24 * 60 * 60 * 1000,
-  });
+  const [url] = await target.getSignedUrl({ action: "read", expires: Date.now() + 365 * 24 * 60 * 60 * 1000 });
   return { path, url };
 }
 
 export async function POST(request: Request) {
   let uploadedLogoPath: string | null = null;
-  let productRef: FirebaseFirestore.DocumentReference | null = null;
+  let productRef: DocumentReference | null = null;
 
   try {
     const isMultipart = request.headers.get("content-type")?.includes("multipart/form-data");
@@ -98,39 +88,27 @@ export async function POST(request: Request) {
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
     const dodoProductId = process.env.DODO_PRODUCT_ID;
     if (!apiKey || !dodoProductId) return NextResponse.json({ error: "Payments are not configured" }, { status: 503 });
-    if (logoFile && !process.env.FIREBASE_STORAGE_BUCKET) {
-      return NextResponse.json({ error: "Logo uploads are not configured" }, { status: 503 });
-    }
+    if (logoFile && !process.env.FIREBASE_STORAGE_BUCKET) return NextResponse.json({ error: "Logo uploads are not configured" }, { status: 503 });
 
     productRef = db.collection("products").doc();
+    const productData = {
+      ...input,
+      totalBidUSD: 0,
+      bidCount: 0,
+      status: "pending",
+      createdAt: new Date(),
+      lastBidAt: null,
+    } as Record<string, unknown>;
+
     if (logoFile) {
       const uploaded = await uploadLogo(logoFile, productRef.id);
       uploadedLogoPath = uploaded.path;
-      await productRef.set({
-        ...input,
-        logoUrl: uploaded.url,
-        totalBidUSD: 0,
-        bidCount: 0,
-        status: "pending",
-        createdAt: new Date(),
-        lastBidAt: null,
-      });
-    } else {
-      await productRef.set({
-        ...input,
-        totalBidUSD: 0,
-        bidCount: 0,
-        status: "pending",
-        createdAt: new Date(),
-        lastBidAt: null,
-      });
+      productData.logoUrl = uploaded.url;
     }
+    await productRef.set(productData);
 
     const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
-    const dodoBase = process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode"
-      ? "https://live.dodopayments.com"
-      : "https://test.dodopayments.com";
-
+    const dodoBase = process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode" ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
     const response = await fetch(`${dodoBase}/checkouts`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
