@@ -75,6 +75,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Payment amount below the required minimum" }, { status: 400 });
     }
 
+    if (metadata.kind !== "new_product" && metadata.kind !== "bid") {
+      return NextResponse.json({ error: "Invalid payment kind" }, { status: 400 });
+    }
+
     const bidRef = db.collection("bids").doc(paymentId);
     const productRef = db.collection("products").doc(productId);
     const globalStatsRef = db.collection("stats").doc("global");
@@ -89,6 +93,14 @@ export async function POST(request: Request) {
       const globalStatsSnap = await tx.get(globalStatsRef);
       if (!productSnap.exists) throw new Error("Product not found");
       const product = productSnap.data()!;
+
+      if (metadata.kind === "new_product" && product.status !== "pending") {
+        throw new Error("Product is no longer pending");
+      }
+      if (metadata.kind === "bid" && product.status !== "live") {
+        throw new Error("Product is no longer live");
+      }
+
       const daily = dailySnap.data() || {};
       const globalStats = globalStatsSnap.data() || {};
       const now = new Date();
