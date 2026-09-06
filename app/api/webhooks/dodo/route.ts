@@ -25,6 +25,7 @@ export async function POST(request: Request) {
   const secret = process.env.DODO_PAYMENTS_WEBHOOK_KEY;
   if (!secret) return NextResponse.json({ error: "Webhook is not configured" }, { status: 500 });
 
+  let event: { type: string; data: DodoPaymentData };
   try {
     const verifier = new Webhook(secret);
     await verifier.verify(raw, {
@@ -32,10 +33,15 @@ export async function POST(request: Request) {
       "webhook-signature": request.headers.get("webhook-signature") || "",
       "webhook-timestamp": request.headers.get("webhook-timestamp") || "",
     });
+    event = JSON.parse(raw) as { type: string; data: DodoPaymentData };
+  } catch (error) {
+    console.error("Dodo webhook verification failed", error);
+    return NextResponse.json({ error: "Invalid webhook" }, { status: 401 });
+  }
 
-    const event = JSON.parse(raw) as { type: string; data: DodoPaymentData };
-    if (event.type !== "payment.succeeded") return NextResponse.json({ received: true });
+  if (event.type !== "payment.succeeded") return NextResponse.json({ received: true });
 
+  try {
     const data = event.data || {};
     const metadata = (data.metadata || {}) as Record<string, string>;
     const productId = metadata.productId;
@@ -138,7 +144,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Dodo webhook verification/processing failed", error);
-    return NextResponse.json({ error: "Invalid webhook" }, { status: 401 });
+    console.error("Dodo webhook processing failed", error);
+    return NextResponse.json({ error: "Webhook could not be reconciled" }, { status: 400 });
   }
 }
