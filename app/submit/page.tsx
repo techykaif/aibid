@@ -7,6 +7,7 @@ import SiteHeader from "@/app/components/SiteHeader";
 
 export default function SubmitPage() {
   const [form, setForm] = useState({ name:"", url:"", tagline:"", description:"", category:"coding", email:"", twitterHandle:"", bid:"5" });
+  const [logo, setLogo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const update = (key: string, value: string) => setForm(v => ({ ...v, [key]: value }));
@@ -16,11 +17,10 @@ export default function SubmitPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const body = new FormData();
+      Object.entries(form).forEach(([key, value]) => body.append(key, value));
+      if (logo) body.append("logo", logo);
+      const res = await fetch("/api/checkout", { method: "POST", body });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Checkout unavailable");
       if (!data.checkout_url) throw new Error("Checkout URL was not returned.");
@@ -42,6 +42,7 @@ export default function SubmitPage() {
         <div className="field"><label htmlFor="product-name">Product name</label><input id="product-name" name="name" autoComplete="organization" maxLength={60} required value={form.name} onChange={e => update("name", e.target.value)} placeholder="Your product" /></div>
         <div className="field"><label htmlFor="product-url">Product URL</label><input id="product-url" name="url" type="url" inputMode="url" autoComplete="url" required value={form.url} onChange={e => update("url", e.target.value)} placeholder="https://yourproduct.com" /></div>
         <div className="field"><label htmlFor="product-tagline">One-line pitch</label><input id="product-tagline" name="tagline" maxLength={100} required value={form.tagline} onChange={e => update("tagline", e.target.value)} placeholder="The fastest way to…" /></div>
+        <div className="field"><label htmlFor="product-logo">Logo <span className="muted">optional · PNG/JPG/SVG · 2MB max</span></label><input id="product-logo" name="logo" type="file" accept="image/png,image/jpeg,image/svg+xml" onChange={e => setLogo(e.target.files?.[0] || null)} /></div>
         <div className="field"><label htmlFor="product-description">Description <span className="muted">optional</span></label><textarea id="product-description" name="description" maxLength={500} value={form.description} onChange={e => update("description", e.target.value)} placeholder="What makes this worth discovering?" /></div>
         <div className="field"><label htmlFor="product-category">Category</label><select id="product-category" name="category" value={form.category} onChange={e => update("category", e.target.value)}>{CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
         <div className="field"><label htmlFor="submitter-email">Email</label><input id="submitter-email" name="email" type="email" inputMode="email" autoComplete="email" spellCheck={false} required value={form.email} onChange={e => update("email", e.target.value)} placeholder="For your receipt and listing updates" /></div>
