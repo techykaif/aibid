@@ -33,21 +33,22 @@
 - Environment variable template
 - Public Terms, Privacy, Rules, and FAQ pages
 - Homepage footer links to legal/trust pages
-- Production pages no longer fall back to demo products or fabricated market activity; unavailable/empty Firestore states render honest empty or configuration states
+- Production pages no longer fall back to demo products or fabricated market activity; unavailable/empty/configuration states render honest states
 - Daily leaderboard and product pages fail safely when Firestore is unavailable instead of breaking prerendering
-- Homepage hero CTAs now use one consistent arrow glyph and non-kicker section labels
+- Homepage hero CTAs use one consistent arrow glyph and non-kicker section labels
 - Product report form and report persistence endpoint
 - Protected admin login and moderation queue using the server-side `ADMIN_TOKEN` boundary
 - Admin moderation actions can dismiss reports or set a reported product to `rejected`
 - Firestore composite index for open moderation reports
+- UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
+- Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
 
 ## Remaining launch requirements from PRD v3
 
-1. Consolidate all UI CSS into `app/globals.css`, remove the extra stylesheet imports/files, and eliminate every `!important`; preserve both intentional light and dark themes while satisfying `AGENTS.md` constraints.
-2. Deploy and verify the configured production Firebase Storage bucket and Storage rules; the code and default-deny rules are now present, but this run cannot claim the live bucket configuration is verified until the new deployment is serving the upload path.
-3. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
-4. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-5. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
+1. Deploy and verify the configured production Firebase Storage bucket and Storage rules; the code and default-deny rules are present, but live upload behavior still needs deployment/runtime verification.
+2. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
+3. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
+4. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
 
 ## Current production verification
 
