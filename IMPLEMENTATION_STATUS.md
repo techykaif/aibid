@@ -13,9 +13,9 @@
 - Anonymous product submission flow
 - Submission-time product URL reachability check with bounded timeout
 - Submission-time basic profanity filter for product name and tagline
-- Firebase Storage logo upload from the submission flow with PNG/JPG/SVG validation and a 2MB limit
-- Server-side signed logo URLs with cleanup on failed checkout creation
-- Firebase Storage default-deny security rules; browser/client Storage access remains blocked
+- Firestore-backed logo upload: PNG/JPG/SVG uploads are decoded, resized, metadata-stripped, converted to WebP, and compressed to a conservative sub-180KB payload before persistence
+- Firestore logo documents use a dedicated `productLogos/{productId}` record and are served through a live-product-checked `/api/logo/[id]` route
+- Logo upload cleanup on failed checkout creation; direct browser Firestore access remains blocked by default-deny rules
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
@@ -63,7 +63,7 @@ Future markets should reuse the verified submission, payment, ranking, product-p
 
 ## Remaining launch requirements from PRD v3
 
-1. Deploy and verify the configured production Firebase Storage bucket and Storage rules; the code and default-deny rules are present, but live upload behavior still needs deployment/runtime verification.
+1. Verify the Firestore-backed logo path in the deployed production runtime with a real image upload; Firebase Storage is intentionally not a launch dependency because it is unavailable on the current plan.
 2. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
 3. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
 4. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.

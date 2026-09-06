@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, getStorageBucket } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin";
 import type { DocumentReference } from "firebase-admin/firestore";
+import { optimizeLogo } from "@/lib/logo";
 
 export const runtime = "nodejs";
 
@@ -18,8 +19,6 @@ const schema = z.object({
 
 const categories = ["coding", "writing", "image", "video", "agents", "productivity", "other"];
 const PROFANITY = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "faggot", "fag", "slut", "whore"];
-const LOGO_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/svg+xml": "svg" };
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 function containsProfanity(value: string) {
   const normalized = value.toLowerCase().replace(/[^a-z]+/g, " ");
@@ -40,25 +39,9 @@ async function urlResolves(url: string) {
   }
 }
 
-async function uploadLogo(file: File, productId: string) {
-  const extension = LOGO_TYPES[file.type];
-  if (!extension) throw new Error("Logo must be a PNG, JPG, or SVG image.");
-  if (file.size <= 0 || file.size > MAX_LOGO_BYTES) throw new Error("Logo must be 2MB or smaller.");
-
-  const bucket = getStorageBucket();
-  const path = `logos/${productId}-${crypto.randomUUID()}.${extension}`;
-  const target = bucket.file(path);
-  await target.save(Buffer.from(await file.arrayBuffer()), {
-    resumable: false,
-    metadata: { contentType: file.type, cacheControl: "public,max-age=31536000,immutable" },
-  });
-  const [url] = await target.getSignedUrl({ action: "read", expires: Date.now() + 365 * 24 * 60 * 60 * 1000 });
-  return { path, url };
-}
-
 export async function POST(request: Request) {
-  let uploadedLogoPath: string | null = null;
   let productRef: DocumentReference | null = null;
+  let logoCreated = false;
 
   try {
     const isMultipart = request.headers.get("content-type")?.includes("multipart/form-data");
@@ -88,7 +71,6 @@ export async function POST(request: Request) {
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
     const dodoProductId = process.env.DODO_PRODUCT_ID;
     if (!apiKey || !dodoProductId) return NextResponse.json({ error: "Payments are not configured" }, { status: 503 });
-    if (logoFile && !process.env.FIREBASE_STORAGE_BUCKET) return NextResponse.json({ error: "Logo uploads are not configured" }, { status: 503 });
 
     productRef = db.collection("products").doc();
     const productData = {
@@ -100,12 +82,22 @@ export async function POST(request: Request) {
       lastBidAt: null,
     } as Record<string, unknown>;
 
-    if (logoFile) {
-      const uploaded = await uploadLogo(logoFile, productRef.id);
-      uploadedLogoPath = uploaded.path;
-      productData.logoUrl = uploaded.url;
-    }
     await productRef.set(productData);
+
+    if (logoFile) {
+      const optimized = await optimizeLogo(logoFile);
+      await db.collection("productLogos").doc(productRef.id).set({
+        data: optimized.data,
+        contentType: optimized.contentType,
+        width: optimized.width,
+        height: optimized.height,
+        sizeBytes: optimized.sizeBytes,
+        updatedAt: new Date(),
+      });
+      logoCreated = true;
+      productData.logoUrl = `/api/logo/${productRef.id}`;
+      await productRef.update({ logoUrl: productData.logoUrl });
+    }
 
     const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
     const dodoBase = process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode" ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
@@ -123,14 +115,14 @@ export async function POST(request: Request) {
     const session = await response.json();
     if (!response.ok || !session.checkout_url) {
       await productRef.delete();
-      if (uploadedLogoPath) await getStorageBucket().file(uploadedLogoPath).delete({ ignoreNotFound: true });
+      if (logoCreated) await db.collection("productLogos").doc(productRef.id).delete();
       return NextResponse.json({ error: session.message || session.detail || "Dodo checkout could not be created" }, { status: 502 });
     }
 
     return NextResponse.json({ checkout_url: session.checkout_url });
   } catch (error) {
     if (productRef) await productRef.delete().catch(() => undefined);
-    if (uploadedLogoPath) await getStorageBucket().file(uploadedLogoPath).delete({ ignoreNotFound: true }).catch(() => undefined);
+    if (productRef && logoCreated) await db.collection("productLogos").doc(productRef.id).delete().catch(() => undefined);
     return NextResponse.json(
       { error: error instanceof z.ZodError ? "Please check the form fields." : error instanceof Error ? error.message : "Could not create checkout." },
       { status: 400 },

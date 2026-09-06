@@ -1,6 +1,5 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
-import { getStorage } from "firebase-admin/storage";
 
 export const isFirebaseConfigured = Boolean(
   process.env.FIREBASE_PROJECT_ID &&
@@ -17,18 +16,11 @@ function getApp() {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
       privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
     }),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || undefined,
   });
 }
 
 export function getDb(): Firestore {
   return getFirestore(getApp());
-}
-
-export function getStorageBucket() {
-  const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
-  if (!bucketName) throw new Error("Firebase Storage is not configured");
-  return getStorage(getApp()).bucket(bucketName);
 }
 
 export const db = new Proxy({} as Firestore, {
