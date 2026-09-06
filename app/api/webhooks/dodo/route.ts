@@ -44,9 +44,19 @@ export async function POST(request: Request) {
     const cart = Array.isArray(data.product_cart) ? data.product_cart as DodoProductCartItem[] : [];
     const cartItem = cart[0];
     const cartAmountCents = Number(cartItem?.amount);
+    const cartQuantity = Number(cartItem?.quantity);
     const expectedDodoProductId = process.env.DODO_PRODUCT_ID;
 
-    if (!productId || !paymentId || currency !== "USD" || !cartItem || !Number.isFinite(cartAmountCents) || cartAmountCents <= 0) {
+    if (
+      !productId ||
+      !paymentId ||
+      currency !== "USD" ||
+      cart.length !== 1 ||
+      !cartItem ||
+      cartQuantity !== 1 ||
+      !Number.isSafeInteger(cartAmountCents) ||
+      cartAmountCents <= 0
+    ) {
       return NextResponse.json({ error: "Invalid payment payload" }, { status: 400 });
     }
 
@@ -58,6 +68,11 @@ export async function POST(request: Request) {
     const metadataBidUSD = Number(metadata.bidUSD);
     if (Number.isFinite(metadataBidUSD) && Math.abs(metadataBidUSD - amountUSD) > 0.001) {
       return NextResponse.json({ error: "Payment amount mismatch" }, { status: 400 });
+    }
+
+    const minimumUSD = metadata.kind === "new_product" ? 5 : 1;
+    if (!Number.isFinite(amountUSD) || amountUSD < minimumUSD) {
+      return NextResponse.json({ error: "Payment amount below the required minimum" }, { status: 400 });
     }
 
     const bidRef = db.collection("bids").doc(paymentId);
