@@ -34,10 +34,10 @@ export default async function Home() {
     {!isFirebaseConfigured && <div className="demo-banner" role="status"><span className="status-dot"/><b>MARKET NOT CONNECTED</b><span>Payments and live rankings are disabled until production credentials are connected.</span></div>}
     <header className="hero">
       <div className="hero-copy">
-        <div className="eyebrow">THE VISIBILITY MARKET FOR AI</div>
+        <div className="eyebrow">THE VISIBILITY MARKET FOR AI + GAMES</div>
         <h1>Build it.<br/><span>Bid it.</span> Be seen.</h1>
-        <p>A public leaderboard where AI products compete for attention. List your product, put real money behind it, and climb through the market on confirmed bid volume.</p>
-        <div className="hero-actions"><Link className="button primary button-lg" href="/submit">List your AI <span>→</span></Link><Link className="button button-lg" href="/today">See today&apos;s market <span>→</span></Link></div>
+        <p>A public leaderboard where AI products and games compete for attention. List your product, put real money behind it, and climb through the market on confirmed bid volume.</p>
+        <div className="hero-actions"><Link className="button primary button-lg" href="/submit">List your product <span>→</span></Link><Link className="button button-lg" href="/today">See today&apos;s market <span>→</span></Link></div>
       </div>
     </header>
 
@@ -54,7 +54,7 @@ export default async function Home() {
     <section className="market-primer" aria-label="How Ai-Bid works">
       <div className="primer-label"><span>THE MARKET, IN 3 MOVES</span><span>Simple rules. Public signal.</span></div>
       <div className="primer-steps">
-        <div className="primer-step"><span className="step-number">01</span><div><strong>List your product</strong><p>Submit your AI product with a $5 minimum starting bid.</p></div></div>
+        <div className="primer-step"><span className="step-number">01</span><div><strong>List your product</strong><p>Submit your AI product or game with a $5 minimum starting bid.</p></div></div>
         <div className="primer-step"><span className="step-number">02</span><div><strong>Bid for attention</strong><p>Every confirmed bid adds to your product&apos;s public total.</p></div></div>
         <div className="primer-step"><span className="step-number">03</span><div><strong>Climb the board</strong><p>Higher cumulative bids mean a higher place in the market.</p></div></div>
       </div>
@@ -62,10 +62,10 @@ export default async function Home() {
 
     <div className="ticker"><span className="status-dot"/><b>MARKET STATUS</b><span className="ticker-sep">/</span><span>{isFirebaseConfigured ? "Live rankings · confirmed bids only" : "Waiting for the production market connection"}</span><span className="ticker-right">24/7</span></div>
     <section className="market-section" id="categories">
-      <div className="boardhead"><div><div className="board-label">MARKET / ALL TIME</div><strong>All-time leaderboard</strong><div className="muted">The more confirmed bids a product earns, the higher it ranks.</div></div><Link className="button" href="/submit">Submit a product <span>→</span></Link></div>
+      <div className="boardhead"><div><div className="board-label">MARKET / ALL TIME</div><strong>AI + Games leaderboard</strong><div className="muted">The more confirmed bids a product earns, the higher it ranks in its category.</div></div><Link className="button" href="/submit">Submit a product <span>→</span></Link></div>
       <Leaderboard />
     </section>
-    <section className="closing-grid" id="how-it-works"><div><div className="board-label">WHY AI-BID</div><h2>Attention should be<br/>earned in public.</h2></div><div className="closing-copy"><p>One board. Seven categories. A simple ranking signal. No opaque recommendation engine deciding which builder gets seen.</p><Link className="text-link" href="/submit">Put your product on the market <span>→</span></Link></div></section>
+    <section className="closing-grid" id="how-it-works"><div><div className="board-label">WHY AI-BID</div><h2>Attention should be<br/>earned in public.</h2></div><div className="closing-copy"><p>Two launch markets. Fourteen categories. One simple ranking signal. No opaque recommendation engine deciding which builder or game gets seen.</p><Link className="text-link" href="/submit">Put your product on the market <span>→</span></Link></div></section>
     <footer className="footer">
       <span>Ai-Bid</span>
       <span><Link href="/legal/terms">Terms</Link> · <Link href="/legal/privacy">Privacy</Link> · <Link href="/legal/rules">Rules</Link> · <Link href="/legal/faq">FAQ</Link></span>
