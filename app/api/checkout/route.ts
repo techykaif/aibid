@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { db } from "@/lib/firebase-admin";
 import type { DocumentReference } from "firebase-admin/firestore";
 import { optimizeLogo } from "@/lib/logo";
@@ -44,27 +46,88 @@ function containsProfanity(value: string) {
   return PROFANITY.some((term) => new RegExp(`(?:^|\\s)${term}(?:$|\\s)`).test(normalized));
 }
 
+function isPrivateOrLocalAddress(address: string) {
+  if (isIP(address) === 4) {
+    const [a, b] = address.split(".").map(Number);
+    return (
+      a === 10 ||
+      a === 127 ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      a === 0
+    );
+  }
+
+  if (isIP(address) === 6) {
+    const normalized = address.toLowerCase();
+    return (
+      normalized === "::1" ||
+      normalized === "::" ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd") ||
+      normalized.startsWith("fe8") ||
+      normalized.startsWith("fe9") ||
+      normalized.startsWith("fea") ||
+      normalized.startsWith("feb")
+    );
+  }
+
+  return false;
+}
+
+async function hostResolvesPublicly(hostname: string) {
+  const addresses = await lookup(hostname, { all: true, verbatim: true });
+  return addresses.length > 0 && addresses.every(({ address }) => !isPrivateOrLocalAddress(address));
+}
+
 async function urlResolves(url: string) {
-  const options = {
-    redirect: "follow" as const,
-    signal: AbortSignal.timeout(5000),
-    headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" },
-  };
+  let current = new URL(url);
+  if (current.username || current.password) return false;
 
-  try {
-    const head = await fetch(url, { ...options, method: "HEAD" });
-    if (head.status >= 200 && head.status < 400) return true;
-    if (head.status !== 405) return false;
-  } catch {
-    // Some legitimate sites reject HEAD; try a bounded GET before rejecting.
+  for (let attempt = 0; attempt <= 3; attempt += 1) {
+    if (current.protocol !== "http:" && current.protocol !== "https:") return false;
+    if (current.username || current.password) return false;
+    if (current.hostname === "localhost" || current.hostname.endsWith(".localhost") || current.hostname.endsWith(".local")) {
+      return false;
+    }
+    if (isIP(current.hostname) && isPrivateOrLocalAddress(current.hostname)) return false;
+    if (!isIP(current.hostname)) {
+      try {
+        if (!(await hostResolvesPublicly(current.hostname))) return false;
+      } catch {
+        return false;
+      }
+    }
+
+    const options = {
+      redirect: "manual" as const,
+      signal: AbortSignal.timeout(5000),
+      headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" },
+    };
+
+    try {
+      const head = await fetch(current, { ...options, method: "HEAD" });
+      if (head.status >= 200 && head.status < 300) return true;
+      if (head.status === 405) {
+        const get = await fetch(current, { ...options, method: "GET" });
+        if (get.status >= 200 && get.status < 300) return true;
+        if (![301, 302, 303, 307, 308].includes(get.status)) return false;
+        const location = get.headers.get("location");
+        if (!location) return false;
+        current = new URL(location, current);
+        continue;
+      }
+      if (![301, 302, 303, 307, 308].includes(head.status)) return false;
+      const location = head.headers.get("location");
+      if (!location) return false;
+      current = new URL(location, current);
+    } catch {
+      return false;
+    }
   }
 
-  try {
-    const get = await fetch(url, { ...options, method: "GET" });
-    return get.status >= 200 && get.status < 400;
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 export async function POST(request: Request) {
