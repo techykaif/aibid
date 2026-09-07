@@ -21,9 +21,10 @@
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
 - Dodo checkout requests keep Ai-Bid bid amounts denominated in USD while allowing Dodo Adaptive Currency to localize eligible customer checkout currencies and payment methods
 - Signed Dodo webhook verification
-- Idempotent payment reconciliation using payment ID
-- Dodo webhook product cart is validated from the signed payload for the expected product and quantity; the webhook does not currently expose a per-line amount, so the server-created checkout amount is retained as the Ai-Bid ledger amount and signed metadata is cross-checked for consistency
-- Webhook enforces the $5 new-product / $1 existing-product minimum based on the server-created bid amount and signed payment context
+- Checkout intents bind each Dodo checkout session ID to the server-derived product, market flow, Dodo product ID, and USD bid amount before the checkout URL is returned
+- Payment reconciliation uses the signed webhook's checkout session ID and product-cart product/quantity to resolve the trusted server-created checkout intent; signed metadata is cross-checked but no longer supplies the authoritative bid amount
+- Idempotent payment reconciliation using payment ID, with the checkout intent deleted transactionally after successful reconciliation
+- Webhook enforces the $5 new-product / $1 existing-product minimum based on the server-created checkout intent and signed payment context
 - Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, avoiding misleading auth failures and unnecessary webhook retry pressure
 - Atomic Firestore bid totals and daily rollups
 - Public product API field allowlist that keeps submitter email private
@@ -104,7 +105,7 @@ The checkout routes no longer force `billing_currency: "USD"`. Ai-Bid amounts re
 
 ## Payment safety
 
-The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Current Dodo payment webhook payloads expose the purchased `product_cart` item as `product_id` + `quantity`, not a per-line amount; therefore the Ai-Bid ledger uses the server-created checkout amount and only uses signed webhook metadata as a consistency cross-check. Customer-facing `currency`, `total_amount`, and settlement fields are not used as the leaderboard bid amount because Adaptive Currency and tax can make them differ from the intended USD bid. The webhook rejects malformed multi-item/quantity payloads and amounts below the applicable minimum. Signature verification failures are separated from post-verification reconciliation failures so verified-but-invalid business state is not mislabeled as an authentication failure.
+The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's current signed payment webhook exposes the purchased `product_cart` as `product_id` + `quantity`, not a per-line amount, so the webhook validates that signed product/quantity and its `checkout_session_id` against a server-created Firestore checkout intent. The checkout intent is the authoritative USD bid amount; signed metadata is only cross-checked for product, kind, and amount consistency. This avoids trusting client input while matching Dodo's current webhook schema. Dodo's documented Adaptive Currency flow can change the customer-facing currency while keeping the merchant's global USD settlement amount fixed. citeturn1search1turn4search1
 
 ## Measurement and privacy safety
 
