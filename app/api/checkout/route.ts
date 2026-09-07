@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/firebase-admin";
 import type { DocumentReference } from "firebase-admin/firestore";
 import { optimizeLogo } from "@/lib/logo";
+import { CATEGORIES, MARKETS } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -11,13 +12,15 @@ const schema = z.object({
   url: z.string().url().startsWith("https://"),
   tagline: z.string().trim().min(1).max(100),
   description: z.string().max(500).optional().default(""),
+  market: z.string().optional().default("ai"),
   category: z.string(),
   email: z.string().email(),
   twitterHandle: z.string().max(30).optional().default(""),
   bid: z.coerce.number().min(5).max(1000000),
 });
 
-const categories = ["coding", "writing", "image", "video", "agents", "productivity", "other"];
+const categories = CATEGORIES.map((category) => category.slug);
+const markets = MARKETS.map((market) => market.slug);
 const PROFANITY = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "faggot", "fag", "slut", "whore"];
 
 function containsProfanity(value: string) {
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
     if (isMultipart) {
       const form = await request.formData();
       inputData = Object.fromEntries(
-        ["name", "url", "tagline", "description", "category", "email", "twitterHandle", "bid"].map((key) => [key, form.get(key) ?? ""]),
+        ["name", "url", "tagline", "description", "market", "category", "email", "twitterHandle", "bid"].map((key) => [key, form.get(key) ?? ""]),
       );
       const candidate = form.get("logo");
       if (candidate instanceof File && candidate.size > 0) logoFile = candidate;
@@ -60,7 +63,12 @@ export async function POST(request: Request) {
     }
 
     const input = schema.parse(inputData);
+    if (!markets.includes(input.market)) return NextResponse.json({ error: "Invalid market" }, { status: 400 });
     if (!categories.includes(input.category)) return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    const selectedMarket = MARKETS.find((market) => market.slug === input.market);
+    if (!selectedMarket?.categories.some((category) => category.slug === input.category)) {
+      return NextResponse.json({ error: "Category does not belong to the selected market" }, { status: 400 });
+    }
     if (containsProfanity(`${input.name} ${input.tagline}`)) {
       return NextResponse.json({ error: "Please remove inappropriate language from the product name or tagline." }, { status: 400 });
     }
@@ -108,7 +116,7 @@ export async function POST(request: Request) {
         product_cart: [{ product_id: dodoProductId, quantity: 1, amount: Math.round(input.bid * 100) }],
         customer: { email: input.email },
         return_url: `${base}/checkout/success?product=${productRef.id}`,
-        metadata: { productId: productRef.id, kind: "new_product", bidUSD: input.bid.toFixed(2) },
+        metadata: { productId: productRef.id, kind: "new_product", bidUSD: input.bid.toFixed(2), market: input.market },
       }),
     });
 
