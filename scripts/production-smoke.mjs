@@ -118,6 +118,21 @@ for (const [name, market, category] of [
   console.log(`PASS ${name}: HTTP 400`);
 }
 
+const ssrfBoundaryResponse = await fetch(new URL("/api/checkout", baseUrl), {
+  method: "POST",
+  headers: { ...headers, "content-type": "application/json" },
+  body: JSON.stringify({
+    ...boundaryPayload,
+    url: "http://[::ffff:127.0.0.1]/",
+    market: "ai",
+    category: "coding",
+  }),
+});
+if (ssrfBoundaryResponse.status !== 400) {
+  throw new Error(`IPv4-mapped private URL returned HTTP ${ssrfBoundaryResponse.status}, expected 400`);
+}
+console.log("PASS IPv4-mapped private URL: HTTP 400");
+
 const invalidWebhook = await fetch(new URL("/api/webhooks/dodo", baseUrl), {
   method: "POST",
   headers: { ...headers, "content-type": "application/json" },
