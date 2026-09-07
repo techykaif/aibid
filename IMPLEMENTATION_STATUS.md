@@ -12,6 +12,7 @@
 - Product detail pages and bid history
 - Anonymous product submission flow
 - Submission-time product URL reachability check with bounded timeout
+- Submission-time URL resolver blocks localhost, private/link-local IP targets, embedded credentials, and revalidates each HTTP(S) redirect target against public DNS/IP space
 - Submission-time basic profanity filter for product name and tagline
 - Firestore-backed logo upload: PNG/JPG/SVG uploads are decoded, resized, metadata-stripped, converted to WebP, and compressed to a conservative sub-180KB payload before persistence
 - Firestore logo documents use a dedicated `productLogos/{productId}` record and are served through a live-product-checked `/api/logo/[id]` route
@@ -86,6 +87,8 @@ The production smoke workflow initially exposed a real `/api/products` HTTP 500 
 A later production smoke run exposed a regression-check failure on `/go/[productId]`: the smoke test used `__production-smoke_invalid_product__` as its invalid Firestore document ID, and Firestore reserves IDs of that form, causing the route to return HTTP 500 before the application could produce its intended 404. The route was hardened to pre-read existence/status before entering the click-counting transaction, and the smoke test was corrected to use a non-reserved invalid ID (`production-smoke-invalid-product-9f6e4d7a`). The corrected smoke run for `main` commit `e2da4a95231b0dcbc0e1709e67caeb6096bd0fb2` completed successfully (GitHub Actions run 13).
 
 The production smoke suite now also verifies that a non-existent `/api/logo/[id]` request returns the intended JSON 404 instead of leaking a server error, and now covers invalid product-page and badge routes as well. These are route-safety checks only; they do not substitute for the remaining real-image upload/read verification gate.
+
+The submission URL resolver now also treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations and credential-bearing URLs, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes the obvious SSRF path through submission-time reachability checks while preserving normal public HTTP(S) product URLs.
 
 ## Payment safety
 
