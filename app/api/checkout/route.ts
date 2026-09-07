@@ -19,8 +19,6 @@ const schema = z.object({
   bid: z.coerce.number().min(5).max(1000000),
 });
 
-const categories = CATEGORIES.map((category) => category.slug);
-const markets = MARKETS.map((market) => market.slug);
 const PROFANITY = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "faggot", "fag", "slut", "whore"];
 
 function containsProfanity(value: string) {
@@ -63,10 +61,11 @@ export async function POST(request: Request) {
     }
 
     const input = schema.parse(inputData);
-    if (!markets.includes(input.market)) return NextResponse.json({ error: "Invalid market" }, { status: 400 });
-    if (!categories.includes(input.category)) return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     const selectedMarket = MARKETS.find((market) => market.slug === input.market);
-    if (!selectedMarket?.categories.some((category) => category.slug === input.category)) {
+    if (!selectedMarket) return NextResponse.json({ error: "Invalid market" }, { status: 400 });
+    const selectedCategory = CATEGORIES.find((category) => category.slug === input.category);
+    if (!selectedCategory) return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    if (!selectedMarket.categories.some((category) => category.slug === selectedCategory.slug)) {
       return NextResponse.json({ error: "Category does not belong to the selected market" }, { status: 400 });
     }
     if (containsProfanity(`${input.name} ${input.tagline}`)) {
