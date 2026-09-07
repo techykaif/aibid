@@ -49,6 +49,7 @@
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, invalid product pages, invalid logo IDs, invalid badge IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
+- Production smoke coverage now also exercises the payment security boundaries without creating a real payment: malformed checkout requests must return HTTP 400 and unsigned Dodo webhook requests must return HTTP 401 JSON
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 - Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
 - Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
@@ -89,6 +90,8 @@ A later production smoke run exposed a regression-check failure on `/go/[product
 The production smoke suite now also verifies that a non-existent `/api/logo/[id]` request returns the intended JSON 404 instead of leaking a server error, and now covers invalid product-page and badge routes as well. These are route-safety checks only; they do not substitute for the remaining real-image upload/read verification gate.
 
 The submission URL resolver now also treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations and credential-bearing URLs, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes the obvious SSRF path through submission-time reachability checks while preserving normal public HTTP(S) product URLs.
+
+The production smoke suite now also probes the payment trust boundaries without creating a charge: a malformed checkout request must be rejected with HTTP 400, and an unsigned Dodo webhook must be rejected with HTTP 401 JSON. These checks improve regression coverage for the payment boundary but do not substitute for a real Dodo test-mode payment and signed webhook reconciliation.
 
 ## Payment safety
 
