@@ -50,7 +50,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             amount: Math.round(input.amount * 100),
           },
         ],
-        billing_currency: "USD",
         customer: { email: input.email },
         return_url: `${base}/checkout/success?product=${id}`,
         metadata: {
