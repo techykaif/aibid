@@ -11,6 +11,7 @@ const PUBLIC_PRODUCT_FIELDS = [
   "url",
   "tagline",
   "description",
+  "market",
   "category",
   "logoUrl",
   "twitterHandle",
@@ -31,7 +32,6 @@ function toPublicProduct(id: string, data: FirebaseFirestore.DocumentData) {
 }
 
 export async function GET(request: Request) {
-  // Firebase is intentionally optional while the public UI is being staged.
   if (!isFirebaseConfigured) return NextResponse.json([]);
 
   const { searchParams } = new URL(request.url);
@@ -39,9 +39,6 @@ export async function GET(request: Request) {
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || 50), 1), 100);
   const validCategory = category && CATEGORIES.some((item) => item.slug === category) ? category : null;
 
-  // Keep the public read path resilient if the production composite indexes have
-  // not been deployed yet. Equality-only reads use Firestore's single-field
-  // indexes; ranking is deterministic in memory for the bounded public result.
   const snapshot = validCategory
     ? await db.collection("products").where("category", "==", validCategory).limit(1000).get()
     : await db.collection("products").where("status", "==", "live").limit(1000).get();
