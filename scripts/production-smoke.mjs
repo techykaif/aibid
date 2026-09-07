@@ -93,6 +93,31 @@ if (invalidCheckout.status !== 400) {
 }
 console.log("PASS invalid checkout payload: HTTP 400");
 
+const boundaryPayload = {
+  name: "Production Smoke Boundary",
+  url: "https://example.com",
+  tagline: "Market validation smoke check",
+  description: "",
+  email: "smoke@example.com",
+  twitterHandle: "",
+  bid: 5,
+};
+
+for (const [name, market, category] of [
+  ["AI market with Games category", "ai", "games-action"],
+  ["Games market with AI category", "games", "coding"],
+]) {
+  const response = await fetch(new URL("/api/checkout", baseUrl), {
+    method: "POST",
+    headers: { ...headers, "content-type": "application/json" },
+    body: JSON.stringify({ ...boundaryPayload, market, category }),
+  });
+  if (response.status !== 400) {
+    throw new Error(`${name} returned HTTP ${response.status}, expected 400`);
+  }
+  console.log(`PASS ${name}: HTTP 400`);
+}
+
 const invalidWebhook = await fetch(new URL("/api/webhooks/dodo", baseUrl), {
   method: "POST",
   headers: { ...headers, "content-type": "application/json" },
