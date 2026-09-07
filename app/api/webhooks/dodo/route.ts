@@ -15,6 +15,8 @@ type DodoPaymentData = {
   id?: unknown;
   currency?: unknown;
   total_amount?: unknown;
+  settlement_amount?: unknown;
+  settlement_currency?: unknown;
   metadata?: unknown;
   product_cart?: unknown;
 };
@@ -45,23 +47,30 @@ export async function POST(request: Request) {
     const metadata = (data.metadata || {}) as Record<string, string>;
     const productId = metadata.productId;
     const paymentId = String(data.payment_id || data.id || "");
-    const currency = String(data.currency || "USD").toUpperCase();
+    const currency = String(data.currency || "").toUpperCase();
+    const settlementCurrency = String(data.settlement_currency || "").toUpperCase();
     const cart = Array.isArray(data.product_cart) ? data.product_cart as DodoProductCartItem[] : [];
     const cartItem = cart[0];
     const totalAmountCents = Number(data.total_amount);
+    const settlementAmountCents = Number(data.settlement_amount);
     const cartQuantity = Number(cartItem?.quantity);
+    const metadataBidUSD = Number(metadata.bidUSD);
     const expectedDodoProductId = process.env.DODO_PRODUCT_ID;
 
     if (
       !productId ||
       !paymentId ||
-      currency !== "USD" ||
       !expectedDodoProductId ||
       cart.length !== 1 ||
       !cartItem ||
       cartQuantity !== 1 ||
       !Number.isSafeInteger(totalAmountCents) ||
-      totalAmountCents <= 0
+      totalAmountCents <= 0 ||
+      !Number.isSafeInteger(settlementAmountCents) ||
+      settlementAmountCents <= 0 ||
+      settlementCurrency !== "USD" ||
+      !Number.isFinite(metadataBidUSD) ||
+      metadataBidUSD <= 0
     ) {
       return NextResponse.json({ error: "Invalid payment payload" }, { status: 400 });
     }
@@ -70,19 +79,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment product" }, { status: 400 });
     }
 
-    const amountUSD = totalAmountCents / 100;
-    const metadataBidUSD = Number(metadata.bidUSD);
-    if (!Number.isFinite(metadataBidUSD) || Math.abs(metadataBidUSD - amountUSD) > 0.001) {
-      return NextResponse.json({ error: "Payment amount mismatch" }, { status: 400 });
-    }
-
+    const amountUSD = metadataBidUSD;
     const kind = metadata.kind;
     if (kind !== "new_product" && kind !== "bid") {
       return NextResponse.json({ error: "Invalid payment kind" }, { status: 400 });
     }
 
     const minimumUSD = kind === "new_product" ? 5 : 1;
-    if (!Number.isFinite(amountUSD) || amountUSD < minimumUSD) {
+    if (amountUSD < minimumUSD) {
       return NextResponse.json({ error: "Payment amount below the required minimum" }, { status: 400 });
     }
 
@@ -104,6 +108,12 @@ export async function POST(request: Request) {
       if (kind === "new_product" && product.status !== "pending") {
         throw new Error("Product is no longer pending");
       }
+      if (kind === "new_product") {
+        const expectedBidUSD = Number(product.bid);
+        if (!Number.isFinite(expectedBidUSD) || Math.abs(expectedBidUSD - amountUSD) > 0.001) {
+          throw new Error("Payment amount does not match the pending product");
+        }
+      }
       if (kind === "bid" && product.status !== "live") {
         throw new Error("Product is no longer live");
       }
@@ -116,7 +126,7 @@ export async function POST(request: Request) {
       tx.set(bidRef, {
         productId,
         amount: amountUSD,
-        currency,
+        currency: "USD",
         amountUSD,
         bidderName: metadata.bidderName || null,
         bidderTwitter: metadata.bidderTwitter || null,
