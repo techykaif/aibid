@@ -12,7 +12,7 @@
 - Product detail pages and bid history
 - Anonymous product submission flow
 - Submission-time product URL reachability check with bounded timeout
-- Submission-time URL resolver blocks localhost, private/link-local IP targets, embedded credentials, and revalidates each HTTP(S) redirect target against public DNS/IP space
+- Submission-time URL resolver blocks localhost, private/link-local IP targets, embedded credentials, IPv4-mapped private/loopback targets, and revalidates each HTTP(S) redirect target against public DNS/IP space
 - Submission-time basic profanity filter for product name and tagline
 - Firestore-backed logo upload: PNG/JPG/SVG uploads are decoded, resized, metadata-stripped, converted to WebP, and compressed to a conservative sub-180KB payload before persistence
 - Firestore logo documents use a dedicated `productLogos/{productId}` record and are served through a live-product-checked `/api/logo/[id]` route
@@ -53,6 +53,7 @@
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, invalid product pages, invalid logo IDs, invalid badge IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
 - Production smoke coverage now also exercises the payment security boundaries without creating a real payment: malformed checkout requests must return HTTP 400 and unsigned Dodo webhook requests must return HTTP 401 JSON
 - Production smoke coverage now also verifies that AI/Games market-category mismatches are rejected with HTTP 400 before any payment or external product URL work is attempted
+- Production smoke coverage now verifies an IPv4-mapped loopback URL (`http://[::ffff:127.0.0.1]/`) is rejected with HTTP 400
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 - Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
 - Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
@@ -95,7 +96,7 @@ The production smoke suite now also verifies that a non-existent `/api/logo/[id]
 
 A live production audit then found two rank-related Firestore composite-index dependencies that were not actually safe in the deployed project: product detail pages and rank-aware OG/badge routes. Those paths were changed to bounded equality-only reads with deterministic server-side sorting. The live product page, rank badge, and product OG image were subsequently verified successfully in production. The product page also now preserves a true HTTP 404 for a missing/non-live product instead of catching Next's `notFound()` control flow and returning HTTP 200 with an error message.
 
-The submission URL resolver treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations and credential-bearing URLs, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes the obvious SSRF path through submission-time reachability checks while preserving normal public HTTP(S) product URLs.
+The submission URL resolver treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations, credential-bearing URLs, and IPv4-mapped loopback/private targets, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes an additional SSRF bypass through IPv4-mapped IPv6 URL literals while preserving normal public HTTP(S) product URLs.
 
 The production smoke suite probes the payment trust boundaries without creating a charge: a malformed checkout request must be rejected with HTTP 400, and an unsigned Dodo webhook must be rejected with HTTP 401 JSON. These checks improve regression coverage for the payment boundary but do not substitute for a real Dodo test-mode payment and signed webhook reconciliation.
 
