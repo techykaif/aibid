@@ -22,14 +22,15 @@
 - Dodo checkout requests keep Ai-Bid bid amounts denominated in USD while allowing Dodo Adaptive Currency to localize eligible customer checkout currencies and payment methods
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
-- Webhook ranking totals derived from the signed Dodo product-cart amount rather than client metadata
-- Webhook cart validation requires exactly one expected product item and quantity 1
-- Webhook enforces the $5 new-product / $1 existing-product minimum based on the signed payment context
+- Dodo webhook product cart is validated from the signed payload for the expected product and quantity; the webhook does not currently expose a per-line amount, so the server-created checkout amount is retained as the Ai-Bid ledger amount and signed metadata is cross-checked for consistency
+- Webhook enforces the $5 new-product / $1 existing-product minimum based on the server-created bid amount and signed payment context
 - Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, avoiding misleading auth failures and unnecessary webhook retry pressure
 - Atomic Firestore bid totals and daily rollups
 - Public product API field allowlist that keeps submitter email private
 - `/api/today` now also uses an explicit public field allowlist; it does not spread private Firestore fields
 - Public products API and leaderboard reads remain functional even if the production composite ranking indexes are not deployed yet: bounded equality-only Firestore reads are filtered/sorted server-side
+- Product pages, rank badges, and product OG rank reads also avoid required composite ranking indexes by using bounded equality-only reads with deterministic server-side sorting
+- Product pages preserve real 404 responses for missing/non-live IDs instead of converting `notFound()` into a false 200 error state
 - Tracked outbound product redirects at `/go/[productId]` with click counts; missing/non-live products are rejected before entering the click-counting transaction
 - Public global market stats API and transactional stats rollup
 - Homepage market stats strip backed by the verified `stats/global` rollup
@@ -73,32 +74,35 @@ AI and Games should reuse the verified submission, payment, ranking, product-pag
 
 ## Remaining launch-base requirements
 
-1. Verify the Firestore-backed logo path in the deployed production runtime with a real image upload; Firebase Storage is intentionally not a launch dependency because it is unavailable on the current plan.
-2. Verify production Dodo product configuration, webhook endpoint/signing secret, Adaptive Currency setting, and payment behavior without exposing credentials.
-3. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-4. Complete the AI launch-base end-to-end journeys and runtime audit.
-5. Complete the Games launch-base acceptance: verify the new Games taxonomy/navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations in deployed runtime.
-6. Run the combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit before declaring the complete launch base ready.
+1. Verify production Dodo product configuration, webhook endpoint/signing secret, Adaptive Currency setting, and payment behavior without exposing credentials.
+2. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
+3. Complete the AI launch-base end-to-end journeys and runtime audit.
+4. Complete the Games launch-base acceptance: verify the new Games taxonomy/navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations in deployed runtime.
+5. Run the combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit before declaring the complete launch base ready.
 
 ## Current production verification
 
-The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is cleared at runtime. A fresh production deployment read of `/api/today` returned HTTP 200 with an empty JSON array, confirming the configured server-side Firestore path is reachable. Production runtime error aggregation for the latest verified window also returned no error entries. The live market is currently empty rather than populated with fabricated/demo data.
+The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is cleared at runtime. Fresh production reads of `/api/today` and `/api/products` returned HTTP 200 from the configured server-side Firestore path with real live documents present. The live market is currently populated only by actual Firestore data; no fabricated/demo fallback is being used.
 
-The production smoke workflow initially exposed a real `/api/products` HTTP 500 on the deployed revision because the ranking query depended on a composite index that was not available at runtime. The public products API and server-rendered leaderboard were changed to use bounded equality-only reads with deterministic in-memory filtering/sorting as a safe fallback. The subsequent `main` smoke run completed successfully, including the products API, confirming the deployed public read path is healthy without requiring that composite index to be present.
+A real deployed logo read has now been verified in production: a live product's `/api/logo/{id}` route returned HTTP 200 with `Content-Type: image/webp`, `X-Content-Type-Options: nosniff`, `Cache-Control: public, max-age=86400`, and an actual 1.6KB stored WebP payload. This clears the previously documented real-image upload/read verification gate for the Firestore-backed logo architecture.
 
-A later production smoke run exposed a regression-check failure on `/go/[productId]`: the smoke test used `__production-smoke_invalid_product__` as its invalid Firestore document ID, and Firestore reserves IDs of that form, causing the route to return HTTP 500 before the application could produce its intended 404. The route was hardened to pre-read existence/status before entering the click-counting transaction, and the smoke test was corrected to use a non-reserved invalid ID (`production-smoke-invalid-product-9f6e4d7a`). The corrected smoke run for `main` commit `e2da4a95231b0dcbc0e1709e67caeb6096bd0fb2` completed successfully (GitHub Actions run 13).
+The production smoke workflow initially exposed a real `/api/products` HTTP 500 on a deployed revision because the ranking query depended on a composite index that was not available at runtime. The public products API and server-rendered leaderboard were changed to use bounded equality-only reads with deterministic in-memory filtering/sorting as a safe fallback. The deployed public read path is now healthy without requiring that composite index to be present.
 
-The production smoke suite now also verifies that a non-existent `/api/logo/[id]` request returns the intended JSON 404 instead of leaking a server error, and now covers invalid product-page and badge routes as well. These are route-safety checks only; they do not substitute for the remaining real-image upload/read verification gate.
+A later production smoke run exposed a regression-check failure on `/go/[productId]`: the smoke test used `__production-smoke_invalid_product__` as an invalid Firestore document ID, and Firestore reserves IDs of that form, causing the route to return HTTP 500 before the application could produce its intended 404. The route was hardened to pre-read existence/status before entering the click-counting transaction, and the smoke test was corrected to use a non-reserved invalid ID (`production-smoke-invalid-product-9f6e4d7a`).
 
-The submission URL resolver now also treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations and credential-bearing URLs, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes the obvious SSRF path through submission-time reachability checks while preserving normal public HTTP(S) product URLs.
+The production smoke suite now also verifies that a non-existent `/api/logo/[id]` request returns the intended JSON 404 instead of leaking a server error, and covers invalid product-page and badge routes as well.
 
-The production smoke suite now also probes the payment trust boundaries without creating a charge: a malformed checkout request must be rejected with HTTP 400, and an unsigned Dodo webhook must be rejected with HTTP 401 JSON. These checks improve regression coverage for the payment boundary but do not substitute for a real Dodo test-mode payment and signed webhook reconciliation.
+A live production audit then found two rank-related Firestore composite-index dependencies that were not actually safe in the deployed project: product detail pages and rank-aware OG/badge routes. Those paths were changed to bounded equality-only reads with deterministic server-side sorting. The live product page, rank badge, and product OG image were subsequently verified successfully in production. The product page also now preserves a true HTTP 404 for a missing/non-live product instead of catching Next's `notFound()` control flow and returning HTTP 200 with an error message.
+
+The submission URL resolver treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations and credential-bearing URLs, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes the obvious SSRF path through submission-time reachability checks while preserving normal public HTTP(S) product URLs.
+
+The production smoke suite probes the payment trust boundaries without creating a charge: a malformed checkout request must be rejected with HTTP 400, and an unsigned Dodo webhook must be rejected with HTTP 401 JSON. These checks improve regression coverage for the payment boundary but do not substitute for a real Dodo test-mode payment and signed webhook reconciliation.
 
 The checkout routes no longer force `billing_currency: "USD"`. Ai-Bid amounts remain USD-denominated internally and are sent as the dynamic product amount, while Dodo Adaptive Currency can localize the customer-facing currency and expose eligible regional methods such as INR/UPI when the merchant setting is enabled. This is intentional because Dodo documents UPI as INR-only while global credit/debit cards support all currencies.
 
 ## Payment safety
 
-The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's signed webhook product-cart amount is the source used for the recorded bid amount; metadata is only cross-checked for consistency. The webhook also rejects malformed multi-item/quantity payloads and amounts below the applicable minimum. Signature verification failures are now separated from post-verification reconciliation failures so verified-but-invalid business state is not mislabeled as an authentication failure.
+The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Current Dodo payment webhook payloads expose the purchased `product_cart` item as `product_id` + `quantity`, not a per-line amount; therefore the Ai-Bid ledger uses the server-created checkout amount and only uses signed webhook metadata as a consistency cross-check. Customer-facing `currency`, `total_amount`, and settlement fields are not used as the leaderboard bid amount because Adaptive Currency and tax can make them differ from the intended USD bid. The webhook rejects malformed multi-item/quantity payloads and amounts below the applicable minimum. Signature verification failures are separated from post-verification reconciliation failures so verified-but-invalid business state is not mislabeled as an authentication failure.
 
 ## Measurement and privacy safety
 
