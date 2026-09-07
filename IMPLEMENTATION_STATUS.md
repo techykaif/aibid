@@ -46,7 +46,7 @@
 - Firestore composite index for open moderation reports
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
-- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, and invalid outbound product IDs; it runs on every main-branch push and can be dispatched manually
+- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 - Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
 - Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
