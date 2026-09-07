@@ -17,8 +17,16 @@ type DodoPaymentData = {
   total_amount?: unknown;
   settlement_amount?: unknown;
   settlement_currency?: unknown;
+  checkout_session_id?: unknown;
   metadata?: unknown;
   product_cart?: unknown;
+};
+
+type CheckoutIntent = {
+  productId?: unknown;
+  kind?: unknown;
+  amountUSD?: unknown;
+  dodoProductId?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -45,9 +53,9 @@ export async function POST(request: Request) {
   try {
     const data = event.data || {};
     const metadata = (data.metadata || {}) as Record<string, string>;
-    const productId = metadata.productId;
+    const metadataProductId = metadata.productId;
     const paymentId = String(data.payment_id || data.id || "");
-    const currency = String(data.currency || "").toUpperCase();
+    const checkoutSessionId = String(data.checkout_session_id || "");
     const settlementCurrency = String(data.settlement_currency || "").toUpperCase();
     const cart = Array.isArray(data.product_cart) ? data.product_cart as DodoProductCartItem[] : [];
     const cartItem = cart[0];
@@ -58,8 +66,9 @@ export async function POST(request: Request) {
     const expectedDodoProductId = process.env.DODO_PRODUCT_ID;
 
     if (
-      !productId ||
+      !metadataProductId ||
       !paymentId ||
+      !checkoutSessionId ||
       !expectedDodoProductId ||
       cart.length !== 1 ||
       !cartItem ||
@@ -79,31 +88,54 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment product" }, { status: 400 });
     }
 
-    const amountUSD = metadataBidUSD;
     const kind = metadata.kind;
     if (kind !== "new_product" && kind !== "bid") {
       return NextResponse.json({ error: "Invalid payment kind" }, { status: 400 });
     }
 
     const minimumUSD = kind === "new_product" ? 5 : 1;
-    if (amountUSD < minimumUSD) {
+    if (metadataBidUSD < minimumUSD) {
       return NextResponse.json({ error: "Payment amount below the required minimum" }, { status: 400 });
     }
 
     const bidRef = db.collection("bids").doc(paymentId);
-    const productRef = db.collection("products").doc(productId);
+    const intentRef = db.collection("checkoutIntents").doc(checkoutSessionId);
+    const productRef = db.collection("products").doc(metadataProductId);
     const globalStatsRef = db.collection("stats").doc("global");
     const date = new Date().toISOString().slice(0, 10);
-    const dailyRef = db.collection("dailyStats").doc(date).collection("entries").doc(productId);
+    const dailyRef = db.collection("dailyStats").doc(date).collection("entries").doc(metadataProductId);
 
     await db.runTransaction(async (tx) => {
       const bidSnap = await tx.get(bidRef);
       if (bidSnap.exists) return;
+      const intentSnap = await tx.get(intentRef);
       const productSnap = await tx.get(productRef);
       const dailySnap = await tx.get(dailyRef);
       const globalStatsSnap = await tx.get(globalStatsRef);
+      if (!intentSnap.exists) throw new Error("Checkout intent not found");
       if (!productSnap.exists) throw new Error("Product not found");
+
+      const intent = intentSnap.data() as CheckoutIntent;
       const product = productSnap.data()!;
+      const amountUSD = Number(intent.amountUSD);
+      const intentProductId = String(intent.productId || "");
+      const intentKind = String(intent.kind || "");
+      const intentDodoProductId = String(intent.dodoProductId || "");
+
+      if (
+        intentProductId !== metadataProductId ||
+        intentKind !== kind ||
+        intentDodoProductId !== expectedDodoProductId ||
+        !Number.isFinite(amountUSD) ||
+        amountUSD <= 0 ||
+        Math.abs(amountUSD - metadataBidUSD) > 0.001
+      ) {
+        throw new Error("Payment does not match the server-created checkout intent");
+      }
+
+      if (amountUSD < minimumUSD) {
+        throw new Error("Payment amount below the required minimum");
+      }
 
       if (kind === "new_product" && product.status !== "pending") {
         throw new Error("Product is no longer pending");
@@ -124,7 +156,7 @@ export async function POST(request: Request) {
       const isFirstConfirmedBid = Number(product.bidCount || 0) === 0;
 
       tx.set(bidRef, {
-        productId,
+        productId: metadataProductId,
         amount: amountUSD,
         currency: "USD",
         amountUSD,
@@ -149,6 +181,7 @@ export async function POST(request: Request) {
         totalBids: Number(globalStats.totalBids || 0) + 1,
         totalProducts: Number(globalStats.totalProducts || 0) + (isFirstConfirmedBid ? 1 : 0),
       }, { merge: true });
+      tx.delete(intentRef);
     });
 
     return NextResponse.json({ received: true });
