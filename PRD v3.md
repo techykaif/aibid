@@ -54,9 +54,9 @@ AI and Games must reuse the same core primitives — submission, paid ranking, p
 
 ## 5. Feature Scope
 
-### 5.1 Submission ✅
-Fields: name, URL, tagline, description (optional), category, X/Twitter handle (optional), email (required, private). Submission + first bid happen in one checkout.
-- **Logo upload ⬜** — deferred until Firebase Storage is configured. Until then, listings render without a logo image (placeholder).
+### 5.1 Submission ⚠️
+Fields: name, URL, tagline, description (optional), market, category, X/Twitter handle (optional), email (required, private). Submission + first bid happen in one checkout.
+- **Logo upload ✅ in code; deployed upload/read verification still required** — see PRD v3.1 for the authoritative Firestore logo architecture. Firebase Storage is not a launch dependency.
 
 ### 5.2 Bidding ✅
 - New product: submission form doubles as first bid (min $5)
@@ -109,7 +109,17 @@ Dodo Payments as sole processor, Merchant of Record, USD only. See Section 8.
 
 ### Games launch-base taxonomy
 
-Games are part of the launch base, but must not be represented by fabricated production listings. Before Games can be considered launch-ready, implement real, deliberate Games categories and the shared marketplace flows for those categories. The Games taxonomy should be appropriate to game discovery (for example, genre/platform or similarly useful dimensions) rather than reusing AI-specific labels.
+Games are part of the launch base and now have a deliberate genre-based taxonomy in code and category navigation:
+
+1. Action
+2. Adventure
+3. RPG
+4. Strategy
+5. Simulation
+6. Puzzle
+7. Other Games
+
+Games categories must not be represented by fabricated production listings. The remaining launch gate is deployed-runtime verification of the shared Games submission, payment, ranking, product-page, sharing, stats, click-tracking, and moderation flows.
 
 Open Source, Music, and any later markets must not be represented as live categories until their post-launch phase is intentionally started.
 
@@ -119,23 +129,14 @@ Open Source, Music, and any later markets must not be represented as live catego
 
 | Field | Type | Notes |
 |---|---|---|
-| name, url, tagline, description, category, twitterHandle | string | as submitted |
-| logoUrl | string \| null | null until logo upload ships |
+| name, url, tagline, description, category, market, twitterHandle | string | as submitted |
+| logoUrl | string \| null | points to `/api/logo/{productId}` when a verified logo is present |
 | email | string | **private — never in any public response, see Section 9** |
 | totalBidUSD | number | drives ranking |
 | bidCount | number | |
 | clicks | number | incremented by `/go/[productId]` |
 | status | enum | `pending` \| `live` \| `rejected` |
 | createdAt, lastBidAt | timestamp | |
-
-### `bids`
-Document ID = Dodo `paymentId` (idempotency by construction).
-
-### `dailyStats/{YYYY-MM-DD}/entries/{productId}`
-`totalBidTodayUSD`, `bidCountToday`
-
-### `stats/global`
-`totalRevenueUSD`, `totalProducts`, `totalBids`
 
 ## 8. Payment Flow (Dodo Payments) ✅
 
@@ -187,8 +188,8 @@ Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat th
 2. Verify production Dodo configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
 3. Run integration/e2e coverage against Dodo test mode + Firebase emulator, including duplicate/retry/failure paths.
 4. Complete the AI launch-base end-to-end journeys.
-5. Implement and verify the Games launch-base market: taxonomy, market/category navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, and moderation using the shared marketplace primitives.
-6. Complete the combined AI + Games launch-base acceptance audit before declaring overall launch readiness.
+5. Complete the Games launch-base acceptance: verify the new Games taxonomy/navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations in deployed runtime.
+6. Run the combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit before declaring the complete launch base ready.
 
 ## 13. Success Metrics (first 7 days post-launch)
 
@@ -210,7 +211,7 @@ Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat th
 2. Verify production Dodo configuration and signed webhook/payment behavior.
 3. Run integration/E2E coverage against Dodo test mode + Firebase emulator.
 4. Complete the AI launch-base acceptance journeys and runtime audit.
-5. Implement the Games launch-base taxonomy and shared marketplace experience without fabricating production listings.
+5. Verify the Games launch-base taxonomy/navigation and complete its shared marketplace acceptance without fabricating production listings.
 6. Run full AI + Games E2E, security, payment, moderation, SEO, mobile, and theme acceptance checks.
 7. Declare the complete launch base ready only when both AI and Games satisfy the acceptance criteria.
 
