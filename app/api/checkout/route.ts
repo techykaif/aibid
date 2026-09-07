@@ -61,6 +61,9 @@ function isPrivateOrLocalAddress(address: string) {
 
   if (isIP(address) === 6) {
     const normalized = address.toLowerCase();
+    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\\d{1,3}(?:\\.\\d{1,3}){3})$/)?.[1];
+    if (mappedIpv4 && isPrivateOrLocalAddress(mappedIpv4)) return true;
+
     return (
       normalized === "::1" ||
       normalized === "::" ||
