@@ -214,11 +214,20 @@ export async function POST(request: Request) {
     });
 
     const session = await response.json();
-    if (!response.ok || !session.checkout_url) {
+    const sessionId = typeof session.session_id === "string" ? session.session_id : "";
+    if (!response.ok || !session.checkout_url || !sessionId) {
       await productRef.delete();
       if (logoCreated) await db.collection("productLogos").doc(productRef.id).delete();
       return NextResponse.json({ error: session.message || session.detail || "Dodo checkout could not be created" }, { status: 502 });
     }
+
+    await db.collection("checkoutIntents").doc(sessionId).set({
+      productId: productRef.id,
+      kind: "new_product",
+      amountUSD: input.bid,
+      dodoProductId,
+      createdAt: new Date(),
+    });
 
     return NextResponse.json({ checkout_url: session.checkout_url });
   } catch (error) {
