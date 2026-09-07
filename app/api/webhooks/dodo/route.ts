@@ -128,7 +128,8 @@ export async function POST(request: Request) {
         intentDodoProductId !== expectedDodoProductId ||
         !Number.isFinite(amountUSD) ||
         amountUSD <= 0 ||
-        Math.abs(amountUSD - metadataBidUSD) > 0.001
+        Math.abs(amountUSD - metadataBidUSD) > 0.001 ||
+        Math.round(amountUSD * 100) !== settlementAmountCents
       ) {
         throw new Error("Payment does not match the server-created checkout intent");
       }
