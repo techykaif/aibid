@@ -12,14 +12,16 @@ export async function GET(
   if (!snap.exists) return new Response("not found", { status: 404 });
 
   const p = snap.data()!;
+  if (p.status !== "live") return new Response("not found", { status: 404 });
+
   const total = Number(p.totalBidUSD || 0);
   const products = await db
     .collection("products")
     .where("status", "==", "live")
-    .orderBy("totalBidUSD", "desc")
-    .limit(100)
+    .limit(1000)
     .get();
-  const rank = products.docs.findIndex((doc) => doc.id === productId) + 1;
+  const ranked = products.docs.sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
+  const rank = ranked.findIndex((doc) => doc.id === productId) + 1;
   const label = `ai-bid #${rank > 0 ? rank : "?"}`;
   const text = `${p.name} · ${label}`;
   const width = Math.max(180, Math.min(500, text.length * 8 + 36));
