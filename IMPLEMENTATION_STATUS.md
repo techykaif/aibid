@@ -15,6 +15,7 @@
 - Submission-time basic profanity filter for product name and tagline
 - Firestore-backed logo upload: PNG/JPG/SVG uploads are decoded, resized, metadata-stripped, converted to WebP, and compressed to a conservative sub-180KB payload before persistence
 - Firestore logo documents use a dedicated `productLogos/{productId}` record and are served through a live-product-checked `/api/logo/[id]` route
+- Logo API responses enforce the same sub-180KB WebP safety bound and reject unexpected stored content types before serving bytes
 - Logo upload cleanup on failed checkout creation; direct browser Firestore access remains blocked by default-deny rules
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
 - Signed Dodo webhook verification
