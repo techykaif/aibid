@@ -52,6 +52,7 @@
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, invalid product pages, invalid logo IDs, invalid badge IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
 - Production smoke coverage now also exercises the payment security boundaries without creating a real payment: malformed checkout requests must return HTTP 400 and unsigned Dodo webhook requests must return HTTP 401 JSON
+- Production smoke coverage now also verifies that AI/Games market-category mismatches are rejected with HTTP 400 before any payment or external product URL work is attempted
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 - Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
 - Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
