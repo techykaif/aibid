@@ -7,7 +7,6 @@ export const runtime = "nodejs";
 type DodoProductCartItem = {
   product_id?: unknown;
   quantity?: unknown;
-  amount?: unknown;
 };
 
 type DodoPaymentData = {
@@ -49,7 +48,7 @@ export async function POST(request: Request) {
     const currency = String(data.currency || "USD").toUpperCase();
     const cart = Array.isArray(data.product_cart) ? data.product_cart as DodoProductCartItem[] : [];
     const cartItem = cart[0];
-    const cartAmountCents = Number(cartItem?.amount);
+    const totalAmountCents = Number(data.total_amount);
     const cartQuantity = Number(cartItem?.quantity);
     const expectedDodoProductId = process.env.DODO_PRODUCT_ID;
 
@@ -61,8 +60,8 @@ export async function POST(request: Request) {
       cart.length !== 1 ||
       !cartItem ||
       cartQuantity !== 1 ||
-      !Number.isSafeInteger(cartAmountCents) ||
-      cartAmountCents <= 0
+      !Number.isSafeInteger(totalAmountCents) ||
+      totalAmountCents <= 0
     ) {
       return NextResponse.json({ error: "Invalid payment payload" }, { status: 400 });
     }
@@ -71,7 +70,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment product" }, { status: 400 });
     }
 
-    const amountUSD = cartAmountCents / 100;
+    const amountUSD = totalAmountCents / 100;
     const metadataBidUSD = Number(metadata.bidUSD);
     if (!Number.isFinite(metadataBidUSD) || Math.abs(metadataBidUSD - amountUSD) > 0.001) {
       return NextResponse.json({ error: "Payment amount mismatch" }, { status: 400 });
