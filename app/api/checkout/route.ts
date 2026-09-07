@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(60),
-  url: z.string().url().startsWith("https://"),
+  url: z.string().url().refine((value) => {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  }, "URL must use HTTP or HTTPS"),
   tagline: z.string().trim().min(1).max(100),
   description: z.string().max(500).optional().default(""),
   market: z.enum(["ai", "games"]).default("ai"),
@@ -42,14 +45,23 @@ function containsProfanity(value: string) {
 }
 
 async function urlResolves(url: string) {
+  const options = {
+    redirect: "follow" as const,
+    signal: AbortSignal.timeout(5000),
+    headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" },
+  };
+
   try {
-    const response = await fetch(url, {
-      method: "HEAD",
-      redirect: "follow",
-      signal: AbortSignal.timeout(5000),
-      headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" },
-    });
-    return response.status < 500;
+    const head = await fetch(url, { ...options, method: "HEAD" });
+    if (head.status >= 200 && head.status < 400) return true;
+    if (head.status !== 405) return false;
+  } catch {
+    // Some legitimate sites reject HEAD; try a bounded GET before rejecting.
+  }
+
+  try {
+    const get = await fetch(url, { ...options, method: "GET" });
+    return get.status >= 200 && get.status < 400;
   } catch {
     return false;
   }
@@ -146,7 +158,7 @@ export async function POST(request: Request) {
     if (productRef) await productRef.delete().catch(() => undefined);
     if (productRef && logoCreated) await db.collection("productLogos").doc(productRef.id).delete().catch(() => undefined);
     return NextResponse.json(
-      { error: error instanceof z.ZodError ? "Please check the form fields." : error instanceof Error ? error.message : "Could not create checkout." },
+      { error: error instanceof z.ZodError ? "Please check the form fields." : "Could not create checkout." },
       { status: 400 },
     );
   }
