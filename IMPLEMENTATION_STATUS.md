@@ -46,7 +46,7 @@
 - Firestore composite index for open moderation reports
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
-- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, invalid logo IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
+- Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, invalid product pages, invalid logo IDs, invalid badge IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 - Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
 - Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
@@ -84,7 +84,7 @@ The production smoke workflow initially exposed a real `/api/products` HTTP 500 
 
 A later production smoke run exposed a regression-check failure on `/go/[productId]`: the smoke test used `__production-smoke_invalid_product__` as its invalid Firestore document ID, and Firestore reserves IDs of that form, causing the route to return HTTP 500 before the application could produce its intended 404. The route was hardened to pre-read existence/status before entering the click-counting transaction, and the smoke test was corrected to use a non-reserved invalid ID (`production-smoke-invalid-product-9f6e4d7a`). The corrected smoke run for `main` commit `e2da4a95231b0dcbc0e1709e67caeb6096bd0fb2` completed successfully (GitHub Actions run 13).
 
-The production smoke suite now also verifies that a non-existent `/api/logo/[id]` request returns the intended JSON 404 instead of leaking a server error. This is a route-safety check only; it does not substitute for the remaining real-image upload/read verification gate below.
+The production smoke suite now also verifies that a non-existent `/api/logo/[id]` request returns the intended JSON 404 instead of leaking a server error, and now covers invalid product-page and badge routes as well. These are route-safety checks only; they do not substitute for the remaining real-image upload/read verification gate.
 
 ## Payment safety
 
