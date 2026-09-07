@@ -19,6 +19,7 @@
 - Logo API responses enforce the same sub-180KB WebP safety bound and reject unexpected stored content types before serving bytes
 - Logo upload cleanup on failed checkout creation; direct browser Firestore access remains blocked by default-deny rules
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
+- Dodo checkout requests keep Ai-Bid bid amounts denominated in USD while allowing Dodo Adaptive Currency to localize eligible customer checkout currencies and payment methods
 - Signed Dodo webhook verification
 - Idempotent payment reconciliation using payment ID
 - Webhook ranking totals derived from the signed Dodo product-cart amount rather than client metadata
@@ -60,7 +61,7 @@
 
 ## Launch-base scope and product expansion roadmap
 
-The complete initial launch base is **AI + Games**. AI remains the current implementation focus; Games is required before the overall launch base is considered ready. Open Source and Music remain post-launch expansion phases. Do not add dormant/mock/fabricated production listings or categories for future markets.
+The complete initial launch base is **AI + Games**. AI remains the current implementation focus; Games is required before the overall launch-base acceptance. Open Source and Music remain post-launch expansion phases. Do not add dormant/mock/fabricated production listings or categories for future markets.
 
 1. **AI** — launch-base market, current implementation focus
 2. **Games** — launch-base market, required before complete launch-base acceptance
@@ -73,7 +74,7 @@ AI and Games should reuse the verified submission, payment, ranking, product-pag
 ## Remaining launch-base requirements
 
 1. Verify the Firestore-backed logo path in the deployed production runtime with a real image upload; Firebase Storage is intentionally not a launch dependency because it is unavailable on the current plan.
-2. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
+2. Verify production Dodo product configuration, webhook endpoint/signing secret, Adaptive Currency setting, and payment behavior without exposing credentials.
 3. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
 4. Complete the AI launch-base end-to-end journeys and runtime audit.
 5. Complete the Games launch-base acceptance: verify the new Games taxonomy/navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations in deployed runtime.
@@ -92,6 +93,8 @@ The production smoke suite now also verifies that a non-existent `/api/logo/[id]
 The submission URL resolver now also treats the destination as an untrusted server-side fetch target: it rejects private/link-local/local destinations and credential-bearing URLs, disables automatic redirect following, bounds redirects, and revalidates every redirect target before fetching it. This closes the obvious SSRF path through submission-time reachability checks while preserving normal public HTTP(S) product URLs.
 
 The production smoke suite now also probes the payment trust boundaries without creating a charge: a malformed checkout request must be rejected with HTTP 400, and an unsigned Dodo webhook must be rejected with HTTP 401 JSON. These checks improve regression coverage for the payment boundary but do not substitute for a real Dodo test-mode payment and signed webhook reconciliation.
+
+The checkout routes no longer force `billing_currency: "USD"`. Ai-Bid amounts remain USD-denominated internally and are sent as the dynamic product amount, while Dodo Adaptive Currency can localize the customer-facing currency and expose eligible regional methods such as INR/UPI when the merchant setting is enabled. This is intentional because Dodo documents UPI as INR-only while global credit/debit cards support all currencies.
 
 ## Payment safety
 
