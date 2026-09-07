@@ -15,11 +15,13 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   if (snap.exists && product?.status === "live" && product?.category) {
     const board = await db
       .collection("products")
-      .where("status", "==", "live")
       .where("category", "==", product.category)
-      .orderBy("totalBidUSD", "desc")
+      .limit(1000)
       .get();
-    const index = board.docs.findIndex((doc) => doc.id === id);
+    const ranked = board.docs
+      .filter((doc) => doc.data().status === "live")
+      .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
+    const index = ranked.findIndex((doc) => doc.id === id);
     rank = index >= 0 ? index + 1 : null;
   }
 
