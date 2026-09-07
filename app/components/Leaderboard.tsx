@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, type Product } from "@/lib/types";
+import { CATEGORIES, MARKETS, type Product } from "@/lib/types";
 import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
@@ -27,8 +27,8 @@ export default async function Leaderboard({ category }: { category?: string }) {
   const products = await getProducts(category);
   return <section className="board">
     <nav className="tabs" aria-label="Filter leaderboard by category">
-      <Link className={`tab ${!category ? "active" : ""}`} href="/" aria-current={!category ? "page" : undefined}>All</Link>
-      {CATEGORIES.map((item) => <Link key={item.slug} className={`tab ${category === item.slug ? "active" : ""}`} href={`/category/${item.slug}`} aria-current={category === item.slug ? "page" : undefined}>{item.name.replace("AI ", "")}</Link>)}
+      <Link className={`tab ${!category ? "active" : ""}`} href="/" aria-current={!category ? "page" : undefined}>All markets</Link>
+      {MARKETS.map((market) => market.categories.map((item) => <Link key={item.slug} className={`tab ${category === item.slug ? "active" : ""}`} href={`/category/${item.slug}`} aria-current={category === item.slug ? "page" : undefined}>{market.name} · {item.name}</Link>))}
     </nav>
     <div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>CURRENT BID</span><span>ACTION</span></div>
     {products.length === 0 ? <div className="empty"><div className="empty-icon">✦</div><strong>{isFirebaseConfigured ? "The board is waiting." : "The market is not connected yet."}</strong><span>{isFirebaseConfigured ? "Be the first product to claim this category." : "Live rankings will appear when the production market is connected."}</span></div> : products.map((product, index) => <div className={`row ${index < 3 ? "top-row" : ""}`} key={product.id}>
