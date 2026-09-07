@@ -51,4 +51,17 @@ if (invalidRedirect.status !== 404) {
 }
 console.log("PASS invalid product redirect: HTTP 404");
 
+const invalidLogo = await fetch(new URL(`/api/logo/${invalidProductId}`, baseUrl), {
+  redirect: "manual",
+  headers: { "user-agent": "Ai-Bid-Production-Smoke/1.0" },
+});
+if (invalidLogo.status !== 404) {
+  throw new Error(`invalid logo route returned HTTP ${invalidLogo.status}, expected 404`);
+}
+const invalidLogoContentType = invalidLogo.headers.get("content-type") || "";
+if (!invalidLogoContentType.includes("application/json")) {
+  throw new Error("invalid logo route did not return JSON");
+}
+console.log("PASS invalid logo route: HTTP 404");
+
 console.log(`Production smoke checks passed for ${baseUrl}`);
