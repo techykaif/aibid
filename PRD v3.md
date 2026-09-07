@@ -10,17 +10,17 @@
 
 ai-bid.lol is a pay-to-rank public leaderboard for AI tools and AI-built products, modeled on outbid.lol's mechanic and scoped initially to a single audience. Anyone can list a product and pay to climb the board; highest cumulative bid holds the top spot in its category. The product is split into category sub-boards with permanent, SEO-indexable product pages, so it works as a viral mechanic in week one and a real directory after the novelty fades.
 
-The long-term product is designed as a reusable **visibility market** rather than a collection of unrelated directories. The initial market is AI. Games are the next planned expansion, followed by Open Source and Music. These are roadmap phases only and must not introduce mock/demo listings or prematurely alter the launch market.
+The long-term product is designed as a reusable **visibility market** rather than a collection of unrelated directories. The initial launch base comprises **AI and Games**. Open Source and Music are later expansion phases. AI is the current launch market; Games is part of the complete launch-base scope and must be implemented as a deliberate second market before the overall launch base is considered complete.
 
-### Future market roadmap
+### Market roadmap
 
-1. **AI** — current launch market
-2. **Games** — first expansion
-3. **Open Source** — developer/community expansion
-4. **Music** — artist/fan expansion
-5. Additional markets only after the core mechanic and earlier expansions are validated
+1. **AI** — launch-base market, current implementation focus
+2. **Games** — launch-base market, required before the complete launch base is declared ready
+3. **Open Source** — post-launch expansion
+4. **Music** — post-launch expansion
+5. Additional markets only after the core mechanic and earlier phases are validated
 
-Future markets should reuse the same core primitives — submission, paid ranking, permanent product pages, shareable rank changes, stats, moderation, and verified payments — while keeping each market's taxonomy and presentation appropriate to its audience.
+AI and Games must reuse the same core primitives — submission, paid ranking, permanent product pages, shareable rank changes, stats, moderation, and verified payments — while keeping each market's taxonomy and presentation appropriate to its audience. Do not add dormant/mock/fabricated listings or categories for Open Source, Music, or later markets.
 
 ## 2. Goals
 
@@ -28,7 +28,7 @@ Future markets should reuse the same core primitives — submission, paid rankin
 - Generate real bidding activity and shareable "I got outbid" moments
 - Leave behind a durable, search-indexable AI-tools directory
 - Match the trust/transparency signals that made outbid.lol credible (live stats, click counts, legal pages) — these are load-bearing, not decoration
-- Keep the architecture extensible so future markets can be added without compromising the launch market
+- Keep the architecture extensible so future markets can be added without compromising the launch-base markets
 
 ### Non-Goals
 
@@ -84,18 +84,20 @@ Fields: name, URL, tagline, description (optional), category, X/Twitter handle (
 - **Live-updating board** ✅ — short-interval polling behind cached API routes (`s-maxage=15` products, `s-maxage=10` today), not `onSnapshot`. Firestore rules block all direct client access; this is final, not a placeholder.
 - **Dynamic OG image** ✅ — per-product, includes live category rank
 - **Embeddable badge** ✅ — SVG at `/api/badge/[productId].svg`
-- **Report link on product pages** ⬜ — not yet built (see 5.9)
+- Report link on product pages — implemented; verify end-to-end before final launch-base acceptance
 
 ### 5.9 Moderation & Anti-Spam
 - Paid $5+ floor is the primary spam control ✅
 - New products go live immediately on payment confirmation ✅
 - Automated URL-resolves + profanity-filter check on submission — **verify this is actually wired in; not confirmed in latest review**
-- **Report link + admin review/unpublish tooling ⬜** — not yet built. Rules and Privacy pages already describe this as if it exists — close this gap before it's a stated-but-false claim to users.
+- Report link + admin review/unpublish tooling — implemented; verify end-to-end before final launch-base acceptance
 
 ### 5.10 Payments ✅
 Dodo Payments as sole processor, Merchant of Record, USD only. See Section 8.
 
-## 6. Categories (final)
+## 6. Categories
+
+### AI launch-base categories
 
 1. AI Coding & Dev Tools
 2. AI Writing & Content
@@ -105,7 +107,11 @@ Dodo Payments as sole processor, Merchant of Record, USD only. See Section 8.
 6. AI Productivity & Chat
 7. Other / Uncategorized
 
-These are the launch-market categories. Future markets must not be represented as live categories until their phase is intentionally implemented.
+### Games launch-base taxonomy
+
+Games are part of the launch base, but must not be represented by fabricated production listings. Before Games can be considered launch-ready, implement real, deliberate Games categories and the shared marketplace flows for those categories. The Games taxonomy should be appropriate to game discovery (for example, genre/platform or similarly useful dimensions) rather than reusing AI-specific labels.
+
+Open Source, Music, and any later markets must not be represented as live categories until their post-launch phase is intentionally started.
 
 ## 7. Data Model (Firestore)
 
@@ -124,10 +130,6 @@ These are the launch-market categories. Future markets must not be represented a
 
 ### `bids`
 Document ID = Dodo `paymentId` (idempotency by construction).
-
-| Field | Type |
-|---|---|
-| productId, amount, currency, amountUSD, bidderName, bidderTwitter, dodoPaymentId, status, createdAt | as implemented |
 
 ### `dailyStats/{YYYY-MM-DD}/entries/{productId}`
 `totalBidTodayUSD`, `bidCountToday`
@@ -152,41 +154,23 @@ Document ID = Dodo `paymentId` (idempotency by construction).
 ## 9. Security Requirements
 
 - **Never spread a full Firestore document into a public response.** `email` lives on the same `products` doc as everything else — every public-facing read must explicitly allowlist fields.
-  - `/api/products` — ✅ fixed, allowlists correctly
-  - **`/api/today` — ⚠️ NOT fixed.** Still does `{ id: p.id, ...p.data(), ... }`, which includes `email`. This is a live bug, not a documented gap — fix this before anything else in this document.
-- Webhook payloads are untrusted until signature-verified; never write to Firestore before verification succeeds ✅
-- Checkout amount and recorded bid amount must always derive from the same server-validated/Dodo-confirmed number, never a client-supplied one taken alone ✅
-- Redirect endpoints (`/go/[productId]`) must validate destination URL scheme before redirecting, to prevent open-redirect abuse ✅
+  - `/api/products` — fixed, allowlists correctly
+  - `/api/today` — fixed, allowlists correctly
+- Webhook payloads are untrusted until signature-verified; never write to Firestore before verification succeeds
+- Checkout amount and recorded bid amount must always derive from the same server-validated/Dodo-confirmed number, never a client-supplied one taken alone
+- Redirect endpoints (`/go/[productId]`) must validate destination URL scheme before redirecting, to prevent open-redirect abuse
 
 ## 10. Design System
 
 Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat that file as the enforced source of truth for anyone (human or agent) touching UI code. Summary:
 
-- **One stylesheet.** `app/globals.css` only. ⚠️ **Not yet true in the repo** — `premium.css`, `market-primer.css`, `ui-polish.css`, `bid-polish.css`, `mobile-parity.css` are all still imported in `layout.tsx`. Consolidate into `globals.css` (organized by section comment) and delete the rest. Zero `!important` once consolidated.
-- **Dual theme, intentional.** Both light and dark are first-class, not one designed and one inverted. Token set:
-
-```css
-:root {
-  color-scheme: light;
-  --bg: #fafafa; --bg-glow: #fff3e6; --surface: #ffffff; --border: #e0e0e0;
-  --text-primary: #0d0d0d; --text-secondary: #585858; --text-tertiary: #8a8a8a;
-  --accent: #ff7a00; --accent-ink: #090909;
-  --danger: #d64545; --success: #178a4c;
-}
-html.dark {
-  color-scheme: dark;
-  --bg: #080808; --bg-glow: #2a1700; --surface: #0d0d0d; --border: #292929;
-  --text-primary: #f5f5f5; --text-secondary: #a9a9a9; --text-tertiary: #767676;
-  --accent: #ff7a00; --accent-ink: #090909;
-  --danger: #ff6b6b; --success: #75e6a1;
-}
-```
-`--accent` and `--accent-ink` are identical in both themes, deliberately — the primary button, active tab, and rank-1 highlight should render pixel-identical regardless of theme; only background/surface/border/text shift. `--bg-glow` is used once, in the hero, in both themes.
-- **No box-shadow anywhere** — borders and surface contrast do the separation job in both themes.
-- **No monospace font** — one sans stack, no exceptions for labels/tickers/step numbers.
-- **Radius:** 8px (inputs, pills, thumbnails) / 12px (buttons, tabs) / 16px (cards). No other value.
-- **Eyebrow/kicker label** used exactly once, in the hero. No `.section-kicker` reused elsewhere.
-- **One arrow style if used at all.** ⚠️ Currently violated — the two hero CTAs use two different glyphs (`→` and `↗`). Pick one.
+- **One stylesheet.** `app/globals.css` only.
+- **Dual theme, intentional.** Both light and dark are first-class. Token set remains defined by `AGENTS.md`.
+- **No box-shadow anywhere.**
+- **No monospace font.**
+- **Radius:** 8px (inputs, pills, thumbnails) / 12px (buttons, tabs) / 16px (cards). No other radius value.
+- **Eyebrow/kicker label** used exactly once, in the hero.
+- **One arrow style if used at all.**
 - No hero widgets, hover-underline nav, sticky/blurred header, or backdrop-filter unless explicitly requested first.
 
 ## 11. Non-Functional Requirements
@@ -199,14 +183,12 @@ html.dark {
 
 ## 12. Known Gaps (prioritized)
 
-1. **Fix `/api/today` email leak** — same allowlist fix already applied to `/api/products`
-2. **CSS consolidation** — fold the five extra stylesheets into `globals.css`, remove the imports, drop all `!important`
-3. **One arrow glyph**, not two, across hero CTAs
-4. **Report link + admin/moderation tooling** — Rules/Privacy pages already describe this; build it so the claim is true
-5. **Logo upload** via Firebase Storage
-6. **Verify submission-time URL-resolves/profanity check** is actually implemented, not just planned
-7. **Production config**: Firebase project/Storage/indexes, Dodo product ID + webhook secret, then run one real end-to-end payment before launch
-8. **Automated tests** against Dodo test mode + Firebase emulator
+1. Verify the Firestore-backed logo path in deployed production runtime with a real image upload; Firebase Storage is intentionally not a launch dependency.
+2. Verify production Dodo configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
+3. Run integration/e2e coverage against Dodo test mode + Firebase emulator, including duplicate/retry/failure paths.
+4. Complete the AI launch-base end-to-end journeys.
+5. Implement and verify the Games launch-base market: taxonomy, market/category navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, and moderation using the shared marketplace primitives.
+6. Complete the combined AI + Games launch-base acceptance audit before declaring overall launch readiness.
 
 ## 13. Success Metrics (first 7 days post-launch)
 
@@ -218,21 +200,18 @@ html.dark {
 |---|---|
 | Genre fatigue | Ship in days, not weeks |
 | Chargebacks | Dodo as MoR absorbs disputes; $5 floor limits remorse |
-| Spam listings | Pay-to-list floor + report/unpublish flow (once built) |
+| Spam listings | Pay-to-list floor + report/unpublish flow |
 | Traffic spike | Edge caching, lean webhook path, polling architecture already avoids listener-cost blowup |
-| Status-doc drift | `IMPLEMENTATION_STATUS.md` currently claims the email-allowlist fix is complete for "public product API" broadly — it's only true for one of two endpoints. Update status docs only after verifying the actual code, not the intent. |
+| Status-doc drift | Keep PRD and implementation status aligned with actual code and runtime verification |
 
-## 15. Build Order (current → launch)
+## 15. Build Order (current → launch base)
 
-1. Fix `/api/today` email leak (Section 9)
-2. CSS consolidation into `globals.css`, drop extra files and `!important` (Section 10)
-3. Report/moderation tooling so Rules/Privacy pages describe real behavior
-4. Logo upload via Firebase Storage
-5. Confirm/wire submission-time content checks
-6. Configure production Firebase (project, Storage, indexes, rules deploy)
-7. Configure production Dodo (product ID, webhook secret)
-8. Run one real end-to-end payment in test mode, then production
-9. Basic integration tests against Dodo test mode + Firebase emulator
-10. Launch
+1. Verify the Firestore-backed logo path in deployed production.
+2. Verify production Dodo configuration and signed webhook/payment behavior.
+3. Run integration/E2E coverage against Dodo test mode + Firebase emulator.
+4. Complete the AI launch-base acceptance journeys and runtime audit.
+5. Implement the Games launch-base taxonomy and shared marketplace experience without fabricating production listings.
+6. Run full AI + Games E2E, security, payment, moderation, SEO, mobile, and theme acceptance checks.
+7. Declare the complete launch base ready only when both AI and Games satisfy the acceptance criteria.
 
-Future market implementation must start only after the launch market is stable. **Phase 2 is Games, Phase 3 is Open Source, and Phase 4 is Music.** Each phase should be implemented as a deliberate market extension rather than adding dormant/mock categories to production.
+Open Source and Music remain post-launch expansion phases and must not distract from unresolved AI/Games launch-base blockers.
