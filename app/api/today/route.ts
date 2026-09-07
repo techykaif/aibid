@@ -10,6 +10,7 @@ const PUBLIC_PRODUCT_FIELDS = [
   "url",
   "tagline",
   "description",
+  "market",
   "category",
   "logoUrl",
   "twitterHandle",
@@ -35,7 +36,6 @@ function toPublicTodayProduct(
 }
 
 export async function GET() {
-  // Firebase is intentionally optional while the public UI is being staged.
   if (!isFirebaseConfigured) return NextResponse.json([]);
 
   const date = new Date().toISOString().slice(0, 10);
