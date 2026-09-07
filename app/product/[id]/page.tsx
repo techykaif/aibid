@@ -40,15 +40,28 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     product = publicProduct(snap.id, snap.data()!);
 
     const ranked = await db.collection("products")
-      .where("status", "==", "live")
       .where("category", "==", product.category)
-      .orderBy("totalBidUSD", "desc")
+      .limit(1000)
       .get();
-    const position = ranked.docs.findIndex((d) => d.id === id);
+    const liveRanked = ranked.docs
+      .filter((doc) => doc.data().status === "live")
+      .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
+    const position = liveRanked.findIndex((d) => d.id === id);
     rank = position >= 0 ? position + 1 : undefined;
 
-    const bs = await db.collection("bids").where("productId", "==", id).where("status", "==", "confirmed").orderBy("createdAt", "desc").limit(20).get();
-    bids = bs.docs.map((d) => Number(d.data().amountUSD || 0));
+    const bs = await db.collection("bids")
+      .where("productId", "==", id)
+      .limit(1000)
+      .get();
+    bids = bs.docs
+      .filter((d) => d.data().status === "confirmed")
+      .sort((a, b) => {
+        const aTime = a.data().createdAt?.toMillis?.() ?? 0;
+        const bTime = b.data().createdAt?.toMillis?.() ?? 0;
+        return bTime - aTime;
+      })
+      .slice(0, 20)
+      .map((d) => Number(d.data().amountUSD || 0));
   } catch {
     return <main className="shell"><SiteHeader/><section className="empty" style={{ marginTop: 80 }}><div className="empty-icon">✦</div><strong>Product data is temporarily unavailable.</strong><span>Please try again shortly.</span></section></main>;
   }
