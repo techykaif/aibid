@@ -23,6 +23,7 @@
 - Signed Dodo webhook verification
 - Checkout intents bind each Dodo checkout session ID to the server-derived product, market flow, Dodo product ID, and USD bid amount before the checkout URL is returned
 - Payment reconciliation uses the signed webhook's checkout session ID and product-cart product/quantity to resolve the trusted server-created checkout intent; signed metadata is cross-checked but no longer supplies the authoritative bid amount
+- Payment reconciliation additionally requires the signed Dodo USD settlement amount to exactly match the server-created checkout intent amount, while customer-facing localized `total_amount` remains separate from the USD settlement ledger
 - Idempotent payment reconciliation using payment ID, with the checkout intent deleted transactionally after successful reconciliation
 - Webhook enforces the $5 new-product / $1 existing-product minimum based on the server-created checkout intent and signed payment context
 - Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, avoiding misleading auth failures and unnecessary webhook retry pressure
@@ -52,7 +53,7 @@
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, invalid outbound product IDs, invalid product pages, invalid logo IDs, invalid badge IDs, and representative AI/Games category routes; it runs on every main-branch push and can be dispatched manually
-- Production smoke coverage now also exercises the payment security boundaries without creating a real payment: malformed checkout requests must return HTTP 400 and unsigned Dodo webhook requests must return HTTP 401 JSON
+- Public production smoke coverage now also exercises the payment security boundaries without creating a real payment: malformed checkout requests must return HTTP 400 and unsigned Dodo webhook requests must return HTTP 401 JSON
 - Production smoke coverage now also verifies that AI/Games market-category mismatches are rejected with HTTP 400 before any payment or external product URL work is attempted
 - Production smoke coverage now verifies an IPv4-mapped loopback URL (`http://[::ffff:127.0.0.1]/`) is rejected with HTTP 400
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
@@ -105,7 +106,7 @@ The checkout routes no longer force `billing_currency: "USD"`. Ai-Bid amounts re
 
 ## Payment safety
 
-The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's current signed payment webhook exposes the purchased `product_cart` as `product_id` + `quantity`, not a per-line amount, so the webhook validates that signed product/quantity and its `checkout_session_id` against a server-created Firestore checkout intent. The checkout intent is the authoritative USD bid amount; signed metadata is only cross-checked for product, kind, and amount consistency. This avoids trusting client input while matching Dodo's current webhook schema. Dodo's documented Adaptive Currency flow can change the customer-facing currency while keeping the merchant's global USD settlement amount fixed.
+The server never trusts a client-side “success” redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. Dodo's current signed payment webhook exposes the purchased `product_cart` as `product_id` + `quantity`, not a per-line amount, so the webhook validates that signed product/quantity and its `checkout_session_id` against a server-created Firestore checkout intent. The checkout intent is the authoritative USD bid amount; the signed metadata is only cross-checked for product, kind, and amount consistency, and the signed Dodo USD settlement amount must also exactly match that trusted checkout intent. This avoids trusting client input while keeping the localized customer-facing amount separate from the USD ranking ledger.
 
 ## Measurement and privacy safety
 
