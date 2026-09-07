@@ -3,6 +3,9 @@ import { db } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
+const MAX_LOGO_BYTES = 180 * 1024;
+const ALLOWED_CONTENT_TYPE = "image/webp";
+
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
@@ -16,13 +19,22 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
     const data = logo.data();
     const bytes = data?.data;
-    if (!bytes) return NextResponse.json({ error: "Logo not found" }, { status: 404 });
+    const contentType = String(data?.contentType || "");
+    if (!bytes || contentType !== ALLOWED_CONTENT_TYPE) {
+      return NextResponse.json({ error: "Logo not found" }, { status: 404 });
+    }
 
-    return new NextResponse(new Uint8Array(bytes), {
+    const body = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes as Uint8Array);
+    if (body.byteLength <= 0 || body.byteLength > MAX_LOGO_BYTES) {
+      console.error("Stored logo exceeded the safe output limit", { productId: id, sizeBytes: body.byteLength });
+      return NextResponse.json({ error: "Logo is temporarily unavailable" }, { status: 503 });
+    }
+
+    return new NextResponse(new Uint8Array(body), {
       status: 200,
       headers: {
-        "Content-Type": String(data.contentType || "image/webp"),
-        "Content-Length": String(Number(data.sizeBytes || bytes.length)),
+        "Content-Type": ALLOWED_CONTENT_TYPE,
+        "Content-Length": String(body.byteLength),
         "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
         "X-Content-Type-Options": "nosniff",
       },
