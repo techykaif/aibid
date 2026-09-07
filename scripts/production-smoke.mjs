@@ -51,6 +51,15 @@ if (invalidRedirect.status !== 404) {
 }
 console.log("PASS invalid product redirect: HTTP 404");
 
+const invalidProductPage = await fetch(new URL(`/product/${invalidProductId}`, baseUrl), {
+  redirect: "manual",
+  headers: { "user-agent": "Ai-Bid-Production-Smoke/1.0" },
+});
+if (invalidProductPage.status !== 404) {
+  throw new Error(`invalid product page returned HTTP ${invalidProductPage.status}, expected 404`);
+}
+console.log("PASS invalid product page: HTTP 404");
+
 const invalidLogo = await fetch(new URL(`/api/logo/${invalidProductId}`, baseUrl), {
   redirect: "manual",
   headers: { "user-agent": "Ai-Bid-Production-Smoke/1.0" },
@@ -63,5 +72,14 @@ if (!invalidLogoContentType.includes("application/json")) {
   throw new Error("invalid logo route did not return JSON");
 }
 console.log("PASS invalid logo route: HTTP 404");
+
+const invalidBadge = await fetch(new URL(`/api/badge/${invalidProductId}.svg`, baseUrl), {
+  redirect: "manual",
+  headers: { "user-agent": "Ai-Bid-Production-Smoke/1.0" },
+});
+if (invalidBadge.status !== 404) {
+  throw new Error(`invalid badge route returned HTTP ${invalidBadge.status}, expected 404`);
+}
+console.log("PASS invalid badge route: HTTP 404");
 
 console.log(`Production smoke checks passed for ${baseUrl}`);
