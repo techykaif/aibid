@@ -49,24 +49,26 @@
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, and invalid outbound product IDs; it runs on every main-branch push and can be dispatched manually
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
 
-## Product expansion roadmap
+## Launch-base scope and product expansion roadmap
 
-The launch market remains AI. Future markets are deliberately not enabled as dormant/mock production categories.
+The complete initial launch base is **AI + Games**. AI remains the current implementation focus; Games is required before the overall launch base is considered ready. Open Source and Music remain post-launch expansion phases. Do not add dormant/mock/fabricated production listings or categories for future markets.
 
-1. **AI** — current launch market
-2. **Games** — first expansion
-3. **Open Source** — third phase / developer-community market
-4. **Music** — fourth phase / artist-community market
-5. Additional markets only after the earlier phases and core marketplace mechanic are validated
+1. **AI** — launch-base market, current implementation focus
+2. **Games** — launch-base market, required before complete launch-base acceptance
+3. **Open Source** — post-launch expansion
+4. **Music** — post-launch expansion
+5. Additional markets only after the core mechanic and earlier phases are validated
 
-Future markets should reuse the verified submission, payment, ranking, product-page, sharing, stats, click-tracking, and moderation primitives rather than creating separate payment or ranking systems.
+AI and Games should reuse the verified submission, payment, ranking, product-page, sharing, stats, click-tracking, and moderation primitives rather than creating separate payment/ranking systems.
 
-## Remaining launch requirements from PRD v3
+## Remaining launch-base requirements
 
 1. Verify the Firestore-backed logo path in the deployed production runtime with a real image upload; Firebase Storage is intentionally not a launch dependency because it is unavailable on the current plan.
 2. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
 3. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
-4. Complete the end-to-end launch journeys and verify the deployed production runtime before declaring launch-ready.
+4. Complete the AI launch-base end-to-end journeys and runtime audit.
+5. Implement the Games launch-base market: deliberate Games taxonomy, navigation/category boards, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations.
+6. Run the combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit before declaring the complete launch base ready.
 
 ## Current production verification
 
