@@ -19,7 +19,7 @@ export default function SiteHeader() {
       </nav>
       <div className="header-actions">
         <ThemeToggle />
-        <Link className="button primary" href="/submit">List your AI <span aria-hidden>→</span></Link>
+        <Link className="button primary" href="/submit">List your product <span aria-hidden>→</span></Link>
       </div>
     </header>
   );
