@@ -48,6 +48,12 @@
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
 - Public production smoke coverage checks the homepage, public APIs, SEO endpoints, legal pages, JSON content types, absence of private email fields, and invalid outbound product IDs; it runs on every main-branch push and can be dispatched manually
 - Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
+- Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
+- Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
+- Server checkout validation enforces that the submitted category belongs to the selected market and persists the market with the pending product
+- Leaderboard/category navigation now exposes both AI and Games categories without creating separate payment/ranking systems
+- Public product and Today projections explicitly expose the public `market` field while preserving the email/private-field allowlist
+- Homepage messaging now accurately presents AI + Games as the launch-base markets
 
 ## Launch-base scope and product expansion roadmap
 
@@ -67,7 +73,7 @@ AI and Games should reuse the verified submission, payment, ranking, product-pag
 2. Verify production Dodo product configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
 3. Run integration/e2e coverage against Dodo test mode and the Firebase emulator, including duplicate/retry/failure paths.
 4. Complete the AI launch-base end-to-end journeys and runtime audit.
-5. Implement the Games launch-base market: deliberate Games taxonomy, navigation/category boards, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations.
+5. Complete the Games launch-base acceptance: verify the new Games taxonomy/navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations in deployed runtime.
 6. Run the combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit before declaring the complete launch base ready.
 
 ## Current production verification
