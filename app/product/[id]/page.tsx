@@ -23,6 +23,8 @@ const publicProduct = (id: string, data: FirebaseFirestore.DocumentData): Produc
   lastBidAt: data.lastBidAt,
 });
 
+const unavailable = () => <main className="shell"><SiteHeader/><section className="empty" style={{ marginTop: 80 }}><div className="empty-icon">✦</div><strong>Product data is temporarily unavailable.</strong><span>Please try again shortly.</span></section></main>;
+
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -31,14 +33,21 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   let product: Product;
-  let bids: number[] = [];
-  let rank: number | undefined;
-
   try {
     const snap = await db.collection("products").doc(id).get();
     if (!snap.exists || snap.data()?.status !== "live") notFound();
     product = publicProduct(snap.id, snap.data()!);
+  } catch (error) {
+    if (error && typeof error === "object" && "digest" in error && String((error as { digest?: unknown }).digest || "").startsWith("NEXT_HTTP_ERROR_FALLBACK")) {
+      throw error;
+    }
+    return unavailable();
+  }
 
+  let bids: number[] = [];
+  let rank: number | undefined;
+
+  try {
     const ranked = await db.collection("products")
       .where("category", "==", product.category)
       .limit(1000)
@@ -63,7 +72,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       .slice(0, 20)
       .map((d) => Number(d.data().amountUSD || 0));
   } catch {
-    return <main className="shell"><SiteHeader/><section className="empty" style={{ marginTop: 80 }}><div className="empty-icon">✦</div><strong>Product data is temporarily unavailable.</strong><span>Please try again shortly.</span></section></main>;
+    return unavailable();
   }
 
   const category = CATEGORIES.find((c) => c.slug === product.category)?.name || "AI Tools";
