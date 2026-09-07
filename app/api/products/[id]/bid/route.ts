@@ -50,6 +50,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             amount: Math.round(input.amount * 100),
           },
         ],
+        allowed_payment_method_types: ["credit", "debit", "upi_collect"],
         customer: { email: input.email },
         return_url: `${base}/checkout/success?product=${id}`,
         metadata: {
