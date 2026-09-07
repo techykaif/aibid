@@ -6,7 +6,7 @@ const checks = [
   ["today API", "/api/today"],
   ["products API", "/api/products"],
   ["stats API", "/api/stats"],
-  ["AI category", "/category/ai-coding-dev-tools"],
+  ["AI category", "/category/coding"],
   ["Games Action category", "/category/games-action"],
   ["Games Adventure category", "/category/games-adventure"],
   ["robots", "/robots.txt"],
