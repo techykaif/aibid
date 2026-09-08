@@ -41,6 +41,19 @@ for (const [name, path] of checks) {
   console.log(`PASS ${name}: HTTP ${response.status}`);
 }
 
+const gamesCategory = await fetch(new URL("/category/games-action", baseUrl), {
+  redirect: "manual",
+  headers,
+});
+if (gamesCategory.status !== 404) {
+  throw new Error(`deferred Games category returned HTTP ${gamesCategory.status}, expected 404`);
+}
+const gamesCategoryBody = await gamesCategory.text();
+if (!gamesCategoryBody.toLowerCase().includes("noindex")) {
+  throw new Error("deferred Games category did not retain noindex protection");
+}
+console.log("PASS deferred Games category: HTTP 404 + noindex");
+
 const invalidProductId = "production-smoke-invalid-product-9f6e4d7a";
 const invalidRedirect = await fetch(new URL(`/go/${invalidProductId}`, baseUrl), {
   redirect: "manual",
