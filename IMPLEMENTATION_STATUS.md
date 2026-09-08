@@ -25,8 +25,9 @@
 - Payment reconciliation uses the signed webhook's checkout session ID and product-cart product/quantity to resolve the trusted server-created checkout intent; signed metadata is cross-checked but no longer supplies the authoritative bid amount
 - Payment reconciliation additionally requires the signed Dodo USD settlement amount to exactly match the server-created checkout intent amount, while customer-facing localized `total_amount` remains separate from the USD settlement ledger
 - Idempotent payment reconciliation using payment ID, with the checkout intent deleted transactionally after successful reconciliation
+- Dodo webhook reconciliation returns a retryable 503 when a verified payment arrives before its server-created checkout intent is visible, instead of incorrectly returning 400 and suppressing Dodo's automatic retry path
 - Webhook enforces the $5 new-product / $1 existing-product minimum based on the server-created checkout intent and signed payment context
-- Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, avoiding misleading auth failures and unnecessary webhook retry pressure
+- Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, while transient missing checkout intents return 503 for provider retry
 - Atomic Firestore bid totals and daily rollups
 - Public product API field allowlist that keeps submitter email private
 - `/api/today` now also uses an explicit public field allowlist; it does not spread private Firestore fields
@@ -103,6 +104,8 @@ The submission URL resolver treats the destination as an untrusted server-side f
 The production smoke suite probes the payment trust boundaries without creating a charge: a malformed checkout request must be rejected with HTTP 400, and an unsigned Dodo webhook must be rejected with HTTP 401 JSON. These checks improve regression coverage for the payment boundary but do not substitute for a real Dodo test-mode payment and signed webhook reconciliation.
 
 The checkout routes no longer force `billing_currency: "USD"`. Ai-Bid amounts remain USD-denominated internally and are sent as the dynamic product amount, while Dodo Adaptive Currency can localize the customer-facing currency and expose eligible regional methods such as INR/UPI when the merchant setting is enabled. This is intentional because Dodo documents UPI as INR-only while global credit/debit cards support all currencies.
+
+A payment-race audit found that a verified Dodo `payment.succeeded` webhook could theoretically arrive before the newly created `checkoutIntents/{checkoutSessionId}` document became visible. Because Dodo treats any non-2xx response as a failed delivery and retries automatically, the missing-intent branch now returns HTTP 503 instead of HTTP 400. Permanent verified-but-invalid payment mismatches continue to return HTTP 400, while signature failures remain HTTP 401. This preserves the trusted checkout-intent amount boundary without creating a false successful payment.
 
 ## Payment safety
 
