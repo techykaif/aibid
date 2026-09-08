@@ -17,7 +17,7 @@
 - Firestore-backed logo upload: PNG/JPG/SVG uploads are decoded, resized, metadata-stripped, converted to WebP, and compressed to a conservative sub-180KB payload before persistence
 - Firestore logo documents use a dedicated `productLogos/{productId}` record and are served through a live-product-checked `/api/logo/[id]` route
 - Logo API responses enforce the same sub-180KB WebP safety bound and reject unexpected stored content types before serving bytes
-- Logo upload cleanup on failed checkout creation; direct browser Firestore access remains blocked by default-deny rules
+- Logo upload cleanup on failed checkout creation; moderation rejection now transactionally removes the associated `productLogos/{productId}` record so rejected products do not leave orphaned logo documents; direct browser Firestore access remains blocked by default-deny rules
 - Dodo Payments hosted checkout integration using the current `/checkouts` payload shape
 - Dodo checkout requests keep Ai-Bid bid amounts denominated in USD while allowing Dodo Adaptive Currency to localize eligible customer checkout currencies and payment methods
 - Signed Dodo webhook verification
@@ -49,7 +49,7 @@
 - Homepage hero CTAs use one consistent arrow glyph and non-kicker section labels
 - Product report form and report persistence endpoint
 - Protected admin login and moderation queue using the server-side `ADMIN_TOKEN` boundary
-- Admin moderation actions can dismiss reports or set a reported product to `rejected`
+- Admin moderation actions can dismiss reports or set a reported product to `rejected`; rejection transactionally deletes the associated product logo document
 - Firestore composite index for open moderation reports
 - UI CSS is consolidated into `app/globals.css`; `layout.tsx` imports only that stylesheet and the five redundant stylesheet files were removed
 - Global CSS now uses the documented dual-theme tokens, allowed radius values, sans-only typography, no `!important`, and no box-shadow declarations
@@ -117,4 +117,4 @@ Public product responses use explicit allowlists and do not expose submitter ema
 
 ## Moderation safety
 
-Reports are accepted only for existing live products and store a bounded reason with an open status. The moderation queue requires the server-side `ADMIN_TOKEN`; no Firestore client access is opened for moderation. Unpublish changes only the product status to `rejected`, while dismissing a report leaves the product live.
+Reports are accepted only for existing live products and store a bounded reason with an open status. The moderation queue requires the server-side `ADMIN_TOKEN`; no Firestore client access is opened for moderation. Unpublish changes only the product status to `rejected`, while dismissing a report leaves the product live. Rejection and logo cleanup are performed in the same Firestore transaction to avoid leaving an inaccessible orphaned logo document.
