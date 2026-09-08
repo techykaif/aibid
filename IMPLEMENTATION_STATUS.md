@@ -30,6 +30,7 @@
 - Dodo webhook reconciliation returns a retryable 503 when a verified payment arrives before its server-created checkout intent is visible, instead of incorrectly returning 400 and suppressing Dodo's automatic retry path
 - Webhook enforces the $5 new-product / $1 existing-product minimum based on the server-created checkout intent and signed payment context
 - Webhook returns 401 only for signature/parse failures and 400 for verified-but-unreconcilable payment payloads or product state, while transient missing checkout intents return 503 for provider retry
+- Explicit Dodo checkout cancellation return route now exists for both new-product and existing-product checkout flows; cancellation messaging does not claim payment success, and production smoke coverage verifies the cancellation route without mutating payment state
 - Atomic Firestore bid totals and daily rollups
 - Public product API field allowlist that keeps submitter email private
 - `/api/today` now also uses an explicit public field allowlist; it does not spread private Firestore fields
