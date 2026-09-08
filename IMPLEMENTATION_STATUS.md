@@ -67,6 +67,7 @@
 - Leaderboard/category navigation now exposes both AI and Games categories without creating separate payment/ranking systems
 - Public product and Today projections explicitly expose the public `market` field while preserving the email/private-field allowlist
 - Homepage messaging now accurately presents AI + Games as the launch-base markets
+- Production smoke coverage now discovers one real live product from `/api/products` and, when present, verifies its public product page, rank badge, and Firestore-backed WebP logo delivery without mutating click counts or payment state
 
 ## Launch-base scope and product expansion roadmap
 
