@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import SiteHeader from "@/app/components/SiteHeader";
+import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +16,27 @@ async function moderate(formData: FormData) {
   const reportId = String(formData.get("reportId") || "");
   const productId = String(formData.get("productId") || "");
   const action = String(formData.get("action") || "");
-  if (!reportId || !productId) return;
+  if (!reportId || !productId || (action !== "reject" && action !== "dismiss")) return;
 
-  const batch = db.batch();
-  if (action === "reject") {
-    batch.update(db.collection("products").doc(productId), { status: "rejected" });
-  }
-  batch.update(db.collection("reports").doc(reportId), {
-    status: action === "reject" ? "actioned" : "dismissed",
-    reviewedAt: new Date(),
+  const reportRef = db.collection("reports").doc(reportId);
+  const productRef = db.collection("products").doc(productId);
+  const logoRef = db.collection("productLogos").doc(productId);
+
+  await db.runTransaction(async (tx) => {
+    const reportSnap = await tx.get(reportRef);
+    const productSnap = await tx.get(productRef);
+    if (!reportSnap.exists || !productSnap.exists) return;
+    if (reportSnap.data()?.status !== "open" || productSnap.data()?.status !== "live") return;
+
+    if (action === "reject") {
+      tx.update(productRef, { status: "rejected" });
+      tx.delete(logoRef);
+    }
+    tx.update(reportRef, {
+      status: action === "reject" ? "actioned" : "dismissed",
+      reviewedAt: new Date(),
+    });
   });
-  await batch.commit();
 }
 
 export default async function AdminPage() {
