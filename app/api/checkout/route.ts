@@ -61,7 +61,7 @@ function isPrivateOrLocalAddress(address: string) {
 
   if (isIP(address) === 6) {
     const normalized = address.toLowerCase();
-    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\\d{1,3}(?:\\.\\d{1,3}){3})$/)?.[1];
+    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\\d{1,3}(?:\\.\d{1,3}){3})$/)?.[1];
     if (mappedIpv4 && isPrivateOrLocalAddress(mappedIpv4)) return true;
 
     return (
@@ -131,6 +131,20 @@ async function urlResolves(url: string) {
   }
 
   return false;
+}
+
+async function persistCheckoutIntent(sessionId: string, data: Record<string, unknown>) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await db.collection("checkoutIntents").doc(sessionId).set(data);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 100 * 2 ** attempt));
+    }
+  }
+  throw lastError;
 }
 
 export async function POST(request: Request) {
@@ -221,7 +235,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: session.message || session.detail || "Dodo checkout could not be created" }, { status: 502 });
     }
 
-    await db.collection("checkoutIntents").doc(sessionId).set({
+    await persistCheckoutIntent(sessionId, {
       productId: productRef.id,
       kind: "new_product",
       amountUSD: input.bid,
