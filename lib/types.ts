@@ -8,20 +8,9 @@ export const AI_CATEGORIES = [
   { slug: "other", name: "Other / Uncategorized" },
 ] as const;
 
-export const GAMES_CATEGORIES = [
-  { slug: "games-action", name: "Action" },
-  { slug: "games-adventure", name: "Adventure" },
-  { slug: "games-rpg", name: "RPG" },
-  { slug: "games-strategy", name: "Strategy" },
-  { slug: "games-simulation", name: "Simulation" },
-  { slug: "games-puzzle", name: "Puzzle" },
-  { slug: "games-other", name: "Other Games" },
-] as const;
-
-export const CATEGORIES = [...AI_CATEGORIES, ...GAMES_CATEGORIES] as const;
+export const CATEGORIES = AI_CATEGORIES;
 export const MARKETS = [
   { slug: "ai", name: "AI", categories: AI_CATEGORIES },
-  { slug: "games", name: "Games", categories: GAMES_CATEGORIES },
 ] as const;
 
 export type CategorySlug = (typeof CATEGORIES)[number]["slug"];
