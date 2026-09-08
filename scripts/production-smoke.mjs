@@ -147,4 +147,66 @@ if (!webhookContentType.includes("application/json")) {
 }
 console.log("PASS unsigned Dodo webhook: HTTP 401");
 
+const productsResponse = await fetch(new URL("/api/products?limit=1", baseUrl), {
+  redirect: "manual",
+  headers,
+});
+if (!productsResponse.ok) {
+  throw new Error(`live product discovery returned HTTP ${productsResponse.status}`);
+}
+const products = await productsResponse.json();
+if (!Array.isArray(products)) {
+  throw new Error("live product discovery did not return an array");
+}
+
+if (products.length > 0) {
+  const product = products[0];
+  if (typeof product.id !== "string" || !product.id) {
+    throw new Error("live product discovery returned a product without a public id");
+  }
+  if (product.email !== undefined || product.submitterEmail !== undefined) {
+    throw new Error("live product response exposes a private email field");
+  }
+
+  const productPage = await fetch(new URL(`/product/${encodeURIComponent(product.id)}`, baseUrl), {
+    redirect: "manual",
+    headers,
+  });
+  if (productPage.status !== 200) {
+    throw new Error(`live product page returned HTTP ${productPage.status}, expected 200`);
+  }
+  console.log(`PASS live product page: HTTP 200 (${product.id})`);
+
+  const badge = await fetch(new URL(`/api/badge/${encodeURIComponent(product.id)}.svg`, baseUrl), {
+    redirect: "manual",
+    headers,
+  });
+  if (badge.status !== 200) {
+    throw new Error(`live product badge returned HTTP ${badge.status}, expected 200`);
+  }
+  if (!(badge.headers.get("content-type") || "").includes("image/svg+xml")) {
+    throw new Error("live product badge did not return SVG content");
+  }
+  console.log(`PASS live product badge: HTTP 200 (${product.id})`);
+
+  if (typeof product.logoUrl === "string" && product.logoUrl) {
+    const logo = await fetch(new URL(product.logoUrl, baseUrl), {
+      redirect: "manual",
+      headers,
+    });
+    if (logo.status !== 200) {
+      throw new Error(`live product logo returned HTTP ${logo.status}, expected 200`);
+    }
+    if ((logo.headers.get("content-type") || "") !== "image/webp") {
+      throw new Error("live product logo did not return image/webp");
+    }
+    if (Number(logo.headers.get("content-length") || 0) > 180 * 1024) {
+      throw new Error("live product logo exceeded the 180KB application safety ceiling");
+    }
+    console.log(`PASS live product logo: HTTP 200 (${product.id})`);
+  }
+} else {
+  console.log("SKIP live product page/logo/badge checks: production currently has no live products");
+}
+
 console.log(`Production smoke checks passed for ${baseUrl}`);
