@@ -7,8 +7,6 @@ const checks = [
   ["products API", "/api/products"],
   ["stats API", "/api/stats"],
   ["AI category", "/category/coding"],
-  ["Games Action category", "/category/games-action"],
-  ["Games Adventure category", "/category/games-adventure"],
   ["robots", "/robots.txt"],
   ["sitemap", "/sitemap.xml"],
   ["terms", "/legal/terms"],
@@ -104,20 +102,15 @@ const boundaryPayload = {
   bid: 5,
 };
 
-for (const [name, market, category] of [
-  ["AI market with Games category", "ai", "games-action"],
-  ["Games market with AI category", "games", "coding"],
-]) {
-  const response = await fetch(new URL("/api/checkout", baseUrl), {
-    method: "POST",
-    headers: { ...headers, "content-type": "application/json" },
-    body: JSON.stringify({ ...boundaryPayload, market, category }),
-  });
-  if (response.status !== 400) {
-    throw new Error(`${name} returned HTTP ${response.status}, expected 400`);
-  }
-  console.log(`PASS ${name}: HTTP 400`);
+const removedGamesResponse = await fetch(new URL("/api/checkout", baseUrl), {
+  method: "POST",
+  headers: { ...headers, "content-type": "application/json" },
+  body: JSON.stringify({ ...boundaryPayload, market: "games", category: "games-action" }),
+});
+if (removedGamesResponse.status !== 400) {
+  throw new Error(`removed Games market returned HTTP ${removedGamesResponse.status}, expected 400`);
 }
+console.log("PASS removed Games market: HTTP 400");
 
 const ssrfBoundaryResponse = await fetch(new URL("/api/checkout", baseUrl), {
   method: "POST",
