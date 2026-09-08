@@ -67,6 +67,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         allowed_payment_method_types: ["credit", "debit", "upi_collect"],
         customer: { email: input.email },
         return_url: `${base}/checkout/success?product=${id}`,
+        cancel_url: `${base}/checkout/cancel?product=${id}`,
         metadata: {
           productId: id,
           kind: "bid",
