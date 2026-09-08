@@ -69,9 +69,12 @@ The shared marketplace primitives remain reusable so a future market can be adde
 
 ## Current production verification
 
-The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is cleared at runtime. Fresh production reads of `/api/today` and `/api/products` returned HTTP 200 from the configured server-side Firestore path with real live documents present. The live market uses actual Firestore data; no fabricated/demo fallback is used.
-
-A real deployed logo read was verified: a live product's `/api/logo/{id}` route returned HTTP 200 with `Content-Type: image/webp`, `X-Content-Type-Options: nosniff`, public caching, and an actual small stored WebP payload. This cleared the real-image upload/read verification gate for the Firestore-backed logo architecture.
+- **2026-09-09 01:53 IST:** the latest AI-only `main` commit `a5b748fff4bbd48553ca4a80c215e02e5a3bb66d` is deployed to the production Vercel deployment and is `READY`. The production domain aliases include `ai-bid.lol` and `www.ai-bid.lol`.
+- Fresh production reads of `/api/today` and `/api/products?limit=1` returned HTTP 200 JSON. `/api/today` currently returns an empty daily board, while `/api/products` returned a real live AI product; no fabricated/demo fallback was observed.
+- The live AI category route `/category/coding` returned HTTP 200 with the expected AI-only category navigation and server-rendered leaderboard.
+- The deferred Games category route `/category/games-action` returned HTTP 404 with `noindex`, confirming it is not an active launch surface.
+- The live product's Firestore-backed logo route returned HTTP 200 with `Content-Type: image/webp`, `X-Content-Type-Options: nosniff`, `Cache-Control: public, max-age=86400`, and a 1,590-byte binary payload, well below the 180KB application ceiling.
+- The previously recorded `/api/today` `SERVICE_DISABLED` / `PERMISSION_DENIED` Firestore blocker is cleared at runtime. Fresh production reads confirm the configured server-side Firestore path is responding.
 
 Production smoke previously exposed composite-index failures on public ranking/product/OG paths. Those reads were changed to bounded equality-only reads with deterministic server-side sorting, and the live product page, rank badge, and product OG image were subsequently verified successfully.
 
