@@ -58,7 +58,8 @@
 - Public production smoke coverage now also exercises the payment security boundaries without creating a real payment: malformed checkout requests must return HTTP 400 and unsigned Dodo webhook requests must return HTTP 401 JSON
 - Production smoke coverage now also verifies that AI/Games market-category mismatches are rejected with HTTP 400 before any payment or external product URL work is attempted
 - Production smoke coverage now verifies an IPv4-mapped loopback URL (`http://[::ffff:127.0.0.1]/`) is rejected with HTTP 400
-- Main-branch CI now runs a TypeScript no-emit typecheck and production build before the public production smoke suite
+- Main-branch CI now runs a TypeScript no-emit typecheck, ESLint, and production build before the public production smoke suite
+- Next.js 16 linting now uses the supported ESLint CLI/flat config rather than the removed `next lint` command
 - Launch-base market model now defines separate AI and Games market taxonomies with shared category typing
 - Submission flow now lets a submitter explicitly choose AI or Games and dynamically selects only that market's categories
 - Server checkout validation enforces that the submitted category belongs to the selected market and persists the market with the pending product
