@@ -11,6 +11,20 @@ const schema = z.object({
   bidderTwitter: z.string().max(30).optional().default(""),
 });
 
+async function persistCheckoutIntent(sessionId: string, data: Record<string, unknown>) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await db.collection("checkoutIntents").doc(sessionId).set(data);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 100 * 2 ** attempt));
+    }
+  }
+  throw lastError;
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -73,7 +87,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    await db.collection("checkoutIntents").doc(sessionId).set({
+    await persistCheckoutIntent(sessionId, {
       productId: id,
       kind: "bid",
       amountUSD: input.amount,
