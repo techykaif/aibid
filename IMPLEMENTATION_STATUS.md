@@ -45,7 +45,7 @@
 - UI CSS is consolidated into `app/globals.css`; documented dual-theme tokens, allowed radii, sans-only typography, no `!important`, and no box-shadow declarations
 - Main-branch CI runs TypeScript no-emit typecheck, ESLint, and production build before the public production smoke suite
 - Next.js 16 linting uses the supported ESLint CLI/flat config
-- Production smoke coverage checks homepage, public APIs, AI category routes, SEO/legal routes, invalid product/redirect/logo/badge IDs, checkout cancellation, private-email leakage, malformed checkout requests, unsigned Dodo webhooks, removed Games checkout requests, SSRF boundary handling, and one real live product's public page/badge/logo when production has live data
+- Production smoke coverage checks homepage, public APIs, AI category routes, deferred Games route inactivity (`404` + `noindex`), SEO/legal routes, invalid product/redirect/logo/badge IDs, checkout cancellation, private-email leakage, malformed checkout requests, unsigned Dodo webhooks, removed Games checkout requests, SSRF boundary handling, and one real live product's public page/badge/logo when production has live data
 - Production smoke never creates a real payment or mutates production click/payment state
 
 ## Launch scope and roadmap
