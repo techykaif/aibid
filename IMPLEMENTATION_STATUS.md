@@ -23,6 +23,7 @@
 - Signed Dodo webhook verification
 - Checkout intents bind each Dodo checkout session ID to the server-derived product, market flow, Dodo product ID, and USD bid amount before the checkout URL is returned
 - Checkout-intent persistence is retried with bounded backoff after Dodo returns a checkout session, reducing the window where a customer could receive a checkout URL without the server-side payment intent needed for trusted webhook reconciliation
+- Payment reconciliation now derives the product and flow from the server-created checkout intent identified by the signed checkout session ID; Dodo metadata is only cross-checked when present and never supplies the authoritative product, flow, or bid amount
 - Payment reconciliation uses the signed webhook's checkout session ID and product-cart product/quantity to resolve the trusted server-created checkout intent; signed metadata is cross-checked but no longer supplies the authoritative bid amount
 - Payment reconciliation additionally requires the signed Dodo USD settlement amount to exactly match the server-created checkout intent amount, while customer-facing localized `total_amount` remains separate from the USD settlement ledger
 - Idempotent payment reconciliation using payment ID, with the checkout intent deleted transactionally after successful reconciliation
@@ -107,7 +108,9 @@ The production smoke suite probes the payment trust boundaries without creating 
 
 The checkout routes no longer force `billing_currency: "USD"`. Ai-Bid amounts remain USD-denominated internally and are sent as the dynamic product amount, while Dodo Adaptive Currency can localize the customer-facing currency and expose eligible regional methods such as INR/UPI when the merchant setting is enabled. This is intentional because Dodo documents UPI as INR-only while global credit/debit cards support all currencies.
 
-A payment-race audit found that a verified Dodo `payment.succeeded` webhook could theoretically arrive before the newly created `checkoutIntents/{checkoutSessionId}` document became visible. Because Dodo treats any non-2xx response as a failed delivery and retries automatically, the missing-intent branch now returns HTTP 503 instead of HTTP 400. Permanent verified-but-invalid payment mismatches continue to return HTTP 400, while signature failures remain HTTP 401. This preserves the trusted checkout-intent amount boundary without creating a false successful payment.
+A payment-race audit found that a verified Dodo `payment.succeeded` webhook could theoretically arrive before the newly created `checkoutIntents/{checkoutSessionId}` document became visible. Because Dodo treats any non-2xx response as a failed delivery and retries automatically, the missing-intent branch now returns HTTP 503 instead of HTTP 400. This preserves the trusted checkout-intent amount boundary without creating a false successful payment.
+
+A webhook trust-boundary audit found that the signed webhook metadata was being used as the authoritative product/flow selector before the server-created checkout intent was loaded. The webhook now resolves product ID, flow, and authoritative USD bid amount from the checkout intent keyed by the signed Dodo checkout session ID; metadata fields are optional cross-checks only. The Dodo product ID and quantity still come directly from the signed `product_cart` payload, and the signed USD settlement amount must exactly match the trusted intent amount.
 
 ## Payment safety
 
