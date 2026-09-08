@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 export default function BidForm({ productId, currentTotal }: { productId: string; currentTotal: number }) {
-  const [amount, setAmount] = useState(String(Math.max(5, Math.ceil(currentTotal + 1))));
+  const [amount, setAmount] = useState(String(Math.max(1, Math.ceil(currentTotal + 1))));
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [twitter, setTwitter] = useState("");
@@ -36,8 +36,8 @@ export default function BidForm({ productId, currentTotal }: { productId: string
 
       <div className="field">
         <label htmlFor="bid-amount">Bid amount <span className="muted">· USD</span></label>
-        <input id="bid-amount" name="amount" type="number" min="5" step="1" inputMode="numeric" value={amount} onChange={e => setAmount(e.target.value)} required aria-describedby="bid-amount-help" />
-        <span id="bid-amount-help" className="field-help">Minimum $5 · Current total ${Number(currentTotal).toLocaleString()}</span>
+        <input id="bid-amount" name="amount" type="number" min="1" step="1" inputMode="numeric" value={amount} onChange={e => setAmount(e.target.value)} required aria-describedby="bid-amount-help" />
+        <span id="bid-amount-help" className="field-help">Minimum $1 · Current total ${Number(currentTotal).toLocaleString()}</span>
       </div>
 
       <div className="field">
