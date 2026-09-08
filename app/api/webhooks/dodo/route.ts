@@ -29,6 +29,8 @@ type CheckoutIntent = {
   dodoProductId?: unknown;
 };
 
+class CheckoutIntentUnavailableError extends Error {}
+
 export async function POST(request: Request) {
   const raw = await request.text();
   const secret = process.env.DODO_PAYMENTS_WEBHOOK_KEY;
@@ -112,7 +114,7 @@ export async function POST(request: Request) {
       const productSnap = await tx.get(productRef);
       const dailySnap = await tx.get(dailyRef);
       const globalStatsSnap = await tx.get(globalStatsRef);
-      if (!intentSnap.exists) throw new Error("Checkout intent not found");
+      if (!intentSnap.exists) throw new CheckoutIntentUnavailableError("Checkout intent not found yet");
       if (!productSnap.exists) throw new Error("Product not found");
 
       const intent = intentSnap.data() as CheckoutIntent;
@@ -188,6 +190,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Dodo webhook processing failed", error);
+    if (error instanceof CheckoutIntentUnavailableError) {
+      return NextResponse.json({ error: "Checkout intent is not available yet" }, { status: 503 });
+    }
     return NextResponse.json({ error: "Webhook could not be reconciled" }, { status: 400 });
   }
 }
