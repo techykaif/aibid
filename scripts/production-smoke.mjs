@@ -15,6 +15,7 @@ const checks = [
   ["privacy", "/legal/privacy"],
   ["rules", "/legal/rules"],
   ["faq", "/legal/faq"],
+  ["checkout cancel", "/checkout/cancel"],
 ];
 
 for (const [name, path] of checks) {
