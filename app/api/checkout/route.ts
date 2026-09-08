@@ -61,7 +61,7 @@ function isPrivateOrLocalAddress(address: string) {
 
   if (isIP(address) === 6) {
     const normalized = address.toLowerCase();
-    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\\d{1,3}(?:\\.\d{1,3}){3})$/)?.[1];
+    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\\d{1,3}(?:\\.\\d{1,3}){3})$/)?.[1];
     if (mappedIpv4 && isPrivateOrLocalAddress(mappedIpv4)) return true;
 
     return (
@@ -223,6 +223,7 @@ export async function POST(request: Request) {
         allowed_payment_method_types: ["credit", "debit", "upi_collect"],
         customer: { email: input.email },
         return_url: `${base}/checkout/success?product=${productRef.id}`,
+        cancel_url: `${base}/checkout/cancel?product=${productRef.id}`,
         metadata: { productId: productRef.id, kind: "new_product", bidUSD: input.bid.toFixed(2), market: input.market },
       }),
     });
