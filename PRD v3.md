@@ -10,17 +10,17 @@
 
 ai-bid.lol is a pay-to-rank public leaderboard for AI tools and AI-built products, modeled on outbid.lol's mechanic and scoped initially to a single audience. Anyone can list a product and pay to climb the board; highest cumulative bid holds the top spot in its category. The product is split into category sub-boards with permanent, SEO-indexable product pages, so it works as a viral mechanic in week one and a real directory after the novelty fades.
 
-The long-term product is designed as a reusable **visibility market** rather than a collection of unrelated directories. The initial launch base comprises **AI and Games**. Open Source and Music are later expansion phases. AI is the current launch market; Games is part of the complete launch-base scope and must be implemented as a deliberate second market before the overall launch base is considered complete.
+The launch product is intentionally **AI-only**. The core mechanic is a focused visibility market for AI tool builders and AI-built products. Future markets may reuse the same infrastructure after the AI market has been validated, but they are not part of the current launch scope and must not appear in production navigation, submission options, categories, or fabricated listings.
 
 ### Market roadmap
 
-1. **AI** — launch-base market, current implementation focus
-2. **Games** — launch-base market, required before the complete launch base is declared ready
-3. **Open Source** — post-launch expansion
-4. **Music** — post-launch expansion
+1. **AI** — current launch market and sole production market
+2. **Games** — future expansion, not part of the current launch
+3. **Open Source** — future expansion
+4. **Music** — future expansion
 5. Additional markets only after the core mechanic and earlier phases are validated
 
-AI and Games must reuse the same core primitives — submission, paid ranking, permanent product pages, shareable rank changes, stats, moderation, and verified payments — while keeping each market's taxonomy and presentation appropriate to its audience. Do not add dormant/mock/fabricated listings or categories for Open Source, Music, or later markets.
+Future markets must reuse the same core primitives — submission, paid ranking, permanent product pages, shareable rank changes, stats, moderation, and verified payments — while keeping each market's taxonomy and presentation appropriate to its audience. Do not add dormant/mock/fabricated listings or categories for future markets.
 
 ## 2. Goals
 
@@ -28,7 +28,7 @@ AI and Games must reuse the same core primitives — submission, paid ranking, p
 - Generate real bidding activity and shareable "I got outbid" moments
 - Leave behind a durable, search-indexable AI-tools directory
 - Match the trust/transparency signals that made outbid.lol credible (live stats, click counts, legal pages) — these are load-bearing, not decoration
-- Keep the architecture extensible so future markets can be added without compromising the launch-base markets
+- Keep the architecture extensible so future markets can be added without compromising the focused AI launch
 
 ### Non-Goals
 
@@ -38,6 +38,7 @@ AI and Games must reuse the same core primitives — submission, paid ranking, p
 - "Claim your listing" ownership transfer flow
 - Native mobile app
 - Multi-currency bidding — USD only
+- Games or other non-AI markets at launch
 
 ## 3. Target Users
 
@@ -55,8 +56,8 @@ AI and Games must reuse the same core primitives — submission, paid ranking, p
 ## 5. Feature Scope
 
 ### 5.1 Submission ⚠️
-Fields: name, URL, tagline, description (optional), market, category, X/Twitter handle (optional), email (required, private). Submission + first bid happen in one checkout.
-- **Logo upload ✅ in code; deployed upload/read verification still required** — see PRD v3.1 for the authoritative Firestore logo architecture. Firebase Storage is not a launch dependency.
+Fields: name, URL, tagline, description (optional), AI category, X/Twitter handle (optional), email (required, private). Submission + first bid happen in one checkout.
+- **Logo upload ✅ in code; deployed upload/read verification completed** — see PRD v3.1 for the authoritative Firestore logo architecture. Firebase Storage is not a launch dependency.
 
 ### 5.2 Bidding ✅
 - New product: submission form doubles as first bid (min $5)
@@ -64,8 +65,8 @@ Fields: name, URL, tagline, description (optional), market, category, X/Twitter 
 - Anonymous bidding allowed — `bidderName`/`bidderTwitter` optional, unset bids show as "Anonymous"
 
 ### 5.3 Leaderboards ✅
-- **All-time** (`/`) — every category, tabbed
-- **Category** (`/category/[slug]`) — permanent, SEO-indexable, one per category
+- **All-time** (`/`) — every AI category, tabbed
+- **Category** (`/category/[slug]`) — permanent, SEO-indexable, one per AI category
 - **Daily** (`/today`) — resets at UTC midnight, ranks by that day's bids only
 
 ### 5.4 Product Pages ✅
@@ -84,20 +85,20 @@ Fields: name, URL, tagline, description (optional), market, category, X/Twitter 
 - **Live-updating board** ✅ — short-interval polling behind cached API routes (`s-maxage=15` products, `s-maxage=10` today), not `onSnapshot`. Firestore rules block all direct client access; this is final, not a placeholder.
 - **Dynamic OG image** ✅ — per-product, includes live category rank
 - **Embeddable badge** ✅ — SVG at `/api/badge/[productId].svg`
-- Report link on product pages — implemented; verify end-to-end before final launch-base acceptance
+- Report link on product pages — implemented; verify end-to-end before final launch acceptance
 
 ### 5.9 Moderation & Anti-Spam
 - Paid $5+ floor is the primary spam control ✅
 - New products go live immediately on payment confirmation ✅
-- Automated URL-resolves + profanity-filter check on submission — **verify this is actually wired in; not confirmed in latest review**
-- Report link + admin review/unpublish tooling — implemented; verify end-to-end before final launch-base acceptance
+- Automated URL-resolves + profanity-filter check on submission — wired in code; verify deployed behavior before final launch
+- Report link + admin review/unpublish tooling — implemented; verify end-to-end before final launch acceptance
 
 ### 5.10 Payments ✅
 Dodo Payments as sole processor, Merchant of Record, USD only. See Section 8.
 
 ## 6. Categories
 
-### AI launch-base categories
+### AI launch categories
 
 1. AI Coding & Dev Tools
 2. AI Writing & Content
@@ -107,21 +108,7 @@ Dodo Payments as sole processor, Merchant of Record, USD only. See Section 8.
 6. AI Productivity & Chat
 7. Other / Uncategorized
 
-### Games launch-base taxonomy
-
-Games are part of the launch base and now have a deliberate genre-based taxonomy in code and category navigation:
-
-1. Action
-2. Adventure
-3. RPG
-4. Strategy
-5. Simulation
-6. Puzzle
-7. Other Games
-
-Games categories must not be represented by fabricated production listings. The remaining launch gate is deployed-runtime verification of the shared Games submission, payment, ranking, product-page, sharing, stats, click-tracking, and moderation flows.
-
-Open Source, Music, and any later markets must not be represented as live categories until their post-launch phase is intentionally started.
+Games, Open Source, Music, and other future markets have **no live categories at launch**. Their taxonomy will be introduced only when the corresponding expansion is intentionally started.
 
 ## 7. Data Model (Firestore)
 
@@ -144,7 +131,7 @@ Open Source, Music, and any later markets must not be represented as live catego
 2. Checkout created against Dodo, `product_currency: "USD"`.
 3. Dodo sends a signed webhook to `/api/webhooks/dodo` on `payment.succeeded`.
 4. Signature verified via `standardwebhooks` before anything in the payload is trusted.
-5. **Amount is taken from Dodo's own `product_cart[].amount`, not from client-supplied metadata** — metadata `bidUSD` is only cross-checked for consistency and rejected on mismatch. This is stronger than a metadata-trust model.
+5. **Amount is derived from the server-created checkout intent and verified against Dodo's signed USD settlement amount;** metadata `bidUSD` is only cross-checked for consistency and rejected on mismatch.
 6. Currency and Dodo product ID are both validated against expected values.
 7. Idempotency: `bids` doc ID = Dodo payment ID; existing doc short-circuits the transaction.
 8. One transaction: writes the bid, updates `products.totalBidUSD/bidCount/lastBidAt/status`, updates `dailyStats`, updates `stats/global` (including `totalProducts` incremented only on a product's first confirmed bid).
@@ -184,12 +171,11 @@ Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat th
 
 ## 12. Known Gaps (prioritized)
 
-1. Verify the Firestore-backed logo path in deployed production runtime with a real image upload; Firebase Storage is intentionally not a launch dependency.
-2. Verify production Dodo configuration, webhook endpoint/signing secret, and payment behavior without exposing credentials.
-3. Run integration/e2e coverage against Dodo test mode + Firebase emulator, including duplicate/retry/failure paths.
-4. Complete the AI launch-base end-to-end journeys.
-5. Complete the Games launch-base acceptance: verify the new Games taxonomy/navigation, real submission flow, paid ranking, permanent product pages, sharing, stats, click tracking, moderation, and the same verified payment/security foundations in deployed runtime.
-6. Run the combined AI + Games E2E/security/payment/moderation/SEO/mobile/theme acceptance audit before declaring the complete launch base ready.
+1. Verify production Dodo product configuration, webhook endpoint/signing secret, Adaptive Currency setting, and payment behavior without exposing credentials.
+2. Run integration/e2e coverage against Dodo test mode + Firebase emulator, including duplicate/retry/failure paths.
+3. Complete the AI launch end-to-end journeys and runtime audit.
+4. Verify the full AI launch acceptance across submission, payment, ranking, product pages, sharing, stats, click tracking, moderation, SEO, mobile, and themes.
+5. After AI launch validation, evaluate whether the Games expansion is strategically justified; if started, reuse the shared marketplace primitives rather than creating a separate payment/ranking system.
 
 ## 13. Success Metrics (first 7 days post-launch)
 
@@ -204,15 +190,14 @@ Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat th
 | Spam listings | Pay-to-list floor + report/unpublish flow |
 | Traffic spike | Edge caching, lean webhook path, polling architecture already avoids listener-cost blowup |
 | Status-doc drift | Keep PRD and implementation status aligned with actual code and runtime verification |
+| Scope dilution | Keep the launch focused on AI; future markets stay out of production until deliberately activated |
 
-## 15. Build Order (current → launch base)
+## 15. Build Order (current → AI launch)
 
-1. Verify the Firestore-backed logo path in deployed production.
-2. Verify production Dodo configuration and signed webhook/payment behavior.
-3. Run integration/E2E coverage against Dodo test mode + Firebase emulator.
-4. Complete the AI launch-base acceptance journeys and runtime audit.
-5. Verify the Games launch-base taxonomy/navigation and complete its shared marketplace acceptance without fabricating production listings.
-6. Run full AI + Games E2E, security, payment, moderation, SEO, mobile, and theme acceptance checks.
-7. Declare the complete launch base ready only when both AI and Games satisfy the acceptance criteria.
+1. Verify production Dodo product configuration and signed webhook/payment behavior.
+2. Run integration/E2E coverage against Dodo test mode + Firebase emulator.
+3. Complete the AI launch acceptance journeys and runtime audit.
+4. Complete the combined AI E2E, security, payment, moderation, SEO, mobile, and theme acceptance audit.
+5. Declare the focused AI launch ready when the above gates are satisfied.
 
-Open Source and Music remain post-launch expansion phases and must not distract from unresolved AI/Games launch-base blockers.
+**Future expansion:** Games is intentionally deferred. It may be revisited after the AI market is validated and should reuse the existing marketplace primitives. Open Source and Music remain later expansion phases and must not distract from unresolved AI launch blockers.
