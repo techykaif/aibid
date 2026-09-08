@@ -10,12 +10,8 @@ export default function SubmitPage() {
   const [logo, setLogo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const market = MARKETS.find((item) => item.slug === form.market) || MARKETS[0];
+  const market = MARKETS[0];
   const update = (key: string, value: string) => setForm(v => ({ ...v, [key]: value }));
-  const updateMarket = (value: string) => {
-    const selected = MARKETS.find((item) => item.slug === value) || MARKETS[0];
-    setForm(v => ({ ...v, market: selected.slug, category: selected.categories[0].slug }));
-  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,14 +36,13 @@ export default function SubmitPage() {
     <SiteHeader />
     <div className="submit-grid">
       <form className="form" onSubmit={submit}>
-        <div className="eyebrow">List your product</div>
+        <div className="eyebrow">List your AI product</div>
         <h1>Buy your place on the board.</h1>
-        <p className="muted" style={{ whiteSpace:"normal", lineHeight:1.6 }}>Every listing starts with a bid. Choose your market and category, tell people what you built, then compete for attention.</p>
+        <p className="muted" style={{ whiteSpace:"normal", lineHeight:1.6 }}>Every listing starts with a bid. Choose a category, tell people what you built, then compete for attention.</p>
 
-        <div className="field"><label htmlFor="product-market">Market</label><select id="product-market" name="market" value={form.market} onChange={e => updateMarket(e.target.value)}>{MARKETS.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></div>
-        <div className="field"><label htmlFor="product-name">Product name</label><input id="product-name" name="name" autoComplete="organization" maxLength={60} required value={form.name} onChange={e => update("name", e.target.value)} placeholder={form.market === "games" ? "Your game" : "Your product"} /></div>
+        <div className="field"><label htmlFor="product-name">Product name</label><input id="product-name" name="name" autoComplete="organization" maxLength={60} required value={form.name} onChange={e => update("name", e.target.value)} placeholder="Your product" /></div>
         <div className="field"><label htmlFor="product-url">Product URL</label><input id="product-url" name="url" type="url" inputMode="url" autoComplete="url" required value={form.url} onChange={e => update("url", e.target.value)} placeholder="https://yourproduct.com" /></div>
-        <div className="field"><label htmlFor="product-tagline">One-line pitch</label><input id="product-tagline" name="tagline" maxLength={100} required value={form.tagline} onChange={e => update("tagline", e.target.value)} placeholder={form.market === "games" ? "The game players should discover…" : "The fastest way to…"} /></div>
+        <div className="field"><label htmlFor="product-tagline">One-line pitch</label><input id="product-tagline" name="tagline" maxLength={100} required value={form.tagline} onChange={e => update("tagline", e.target.value)} placeholder="The fastest way to…" /></div>
         <div className="field"><label htmlFor="product-logo">Logo <span className="muted">optional · PNG/JPG/SVG · 2MB max</span></label><input id="product-logo" name="logo" type="file" accept="image/png,image/jpeg,image/svg+xml" onChange={e => setLogo(e.target.files?.[0] || null)} /></div>
         <div className="field"><label htmlFor="product-description">Description <span className="muted">optional</span></label><textarea id="product-description" name="description" maxLength={500} value={form.description} onChange={e => update("description", e.target.value)} placeholder="What makes this worth discovering?" /></div>
         <div className="field"><label htmlFor="product-category">Category</label><select id="product-category" name="category" value={form.category} onChange={e => update("category", e.target.value)}>{market.categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
