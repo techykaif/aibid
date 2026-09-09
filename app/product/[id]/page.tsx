@@ -136,7 +136,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const category = CATEGORIES.find((item) => item.slug === data.category)?.name || "AI Tools";
     const description = data.description ? String(data.description) : tagline;
     const canonical = `${base}/product/${encodeURIComponent(id)}`;
-    const ogImage = `${base}/api/og/${encodeURIComponent(id)}`;
+    const ogImage = `${canonical}/opengraph-image`;
 
     return {
       title: `${name} — ${category} — Ai-Bid`,
