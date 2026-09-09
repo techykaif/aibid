@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE_URL = "https://www.ai-bid.lol";
+
 export const metadata: Metadata = {
   title: "Ai-Bid — The visibility market for AI",
   description: "Discover AI products. Bid for attention. Climb the public leaderboard.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol"),
+  metadataBase: new URL(SITE_URL),
   icons: { icon: "/icon.svg", shortcut: "/icon.svg", apple: "/icon.svg" },
 };
 
