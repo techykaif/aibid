@@ -77,9 +77,20 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const category = CATEGORIES.find((c) => c.slug === product.category)?.name || "AI Tools";
   const clicks = Number(product.clicks || 0);
+  const canonical = `https://www.ai-bid.lol/product/${encodeURIComponent(id)}`;
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Ai-Bid", item: "https://www.ai-bid.lol/" },
+      { "@type": "ListItem", position: 2, name: category, item: `https://www.ai-bid.lol/category/${encodeURIComponent(product.category)}` },
+      { "@type": "ListItem", position: 3, name: product.name, item: canonical },
+    ],
+  };
 
   return <main className="shell">
     <SiteHeader />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <div className="product-hero">
       <article className="product-card">
         <div className="eyebrow">{category}</div>
@@ -137,23 +148,24 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const description = data.description ? String(data.description) : tagline;
     const canonical = `${base}/product/${encodeURIComponent(id)}`;
     const ogImage = `${canonical}/opengraph-image`;
+    const title = `${name} — ${category} — Ai-Bid`;
 
     return {
-      title: `${name} — ${category} — Ai-Bid`,
+      title,
       description,
       alternates: { canonical },
       robots: { index: true, follow: true },
       openGraph: {
         type: "website",
         url: canonical,
-        title: `${name} — ${category} — Ai-Bid`,
+        title,
         description,
         siteName: "Ai-Bid",
         images: [{ url: ogImage, alt: `${name} on Ai-Bid` }],
       },
       twitter: {
         card: "summary_large_image",
-        title: `${name} — ${category} — Ai-Bid`,
+        title,
         description,
         images: [ogImage],
       },
