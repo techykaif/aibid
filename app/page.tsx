@@ -1,11 +1,52 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import Leaderboard from "./components/Leaderboard";
 import SiteHeader from "./components/SiteHeader";
 
+const SITE_URL = "https://www.ai-bid.lol";
+const SITE_TITLE = "Ai-Bid — The visibility market for AI";
+const SITE_DESCRIPTION = "Discover AI products, bid for attention, and climb the public visibility market on confirmed bid volume.";
+
+export const metadata: Metadata = {
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "Ai-Bid",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "en_US",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: SITE_TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/opengraph-image"],
+  },
+};
+
 export const revalidate = 15;
 
 const EMPTY_STATS = { totalRevenueUSD: 0, totalProducts: 0, totalBids: 0 };
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Ai-Bid",
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.svg`,
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Ai-Bid",
+  alternateName: "Ai Bid",
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+};
 
 async function getMarketStats() {
   if (!isFirebaseConfigured) return EMPTY_STATS;
@@ -31,6 +72,8 @@ export default async function Home() {
 
   return <main className="shell">
     <SiteHeader />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
     {!isFirebaseConfigured && <div className="demo-banner" role="status"><span className="status-dot"/><b>MARKET NOT CONNECTED</b><span>Payments and live rankings are disabled until production credentials are connected.</span></div>}
     <header className="hero">
       <div className="hero-copy">
