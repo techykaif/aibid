@@ -36,13 +36,20 @@ export async function POST(request: Request) {
   const secret = process.env.DODO_PAYMENTS_WEBHOOK_KEY;
   if (!secret) return NextResponse.json({ error: "Webhook is not configured" }, { status: 500 });
 
+  const webhookId = request.headers.get("webhook-id");
+  const webhookSignature = request.headers.get("webhook-signature");
+  const webhookTimestamp = request.headers.get("webhook-timestamp");
+  if (!webhookId || !webhookSignature || !webhookTimestamp) {
+    return NextResponse.json({ error: "Missing webhook signature headers" }, { status: 401 });
+  }
+
   let event: { type: string; data: DodoPaymentData };
   try {
     const verifier = new Webhook(secret);
     await verifier.verify(raw, {
-      "webhook-id": request.headers.get("webhook-id") || "",
-      "webhook-signature": request.headers.get("webhook-signature") || "",
-      "webhook-timestamp": request.headers.get("webhook-timestamp") || "",
+      "webhook-id": webhookId,
+      "webhook-signature": webhookSignature,
+      "webhook-timestamp": webhookTimestamp,
     });
     event = JSON.parse(raw) as { type: string; data: DodoPaymentData };
   } catch (error) {
