@@ -19,7 +19,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
   const {slug}=await params;
   const category=CATEGORIES.find(x=>x.slug===slug);
   const market=MARKETS.find(item=>item.categories.some(itemCategory=>itemCategory.slug===slug));
-  const base=process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
+  const base="https://www.ai-bid.lol";
 
   if(!category || !market){
     return {
