@@ -3,27 +3,71 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 const SITE_URL = "https://www.ai-bid.lol";
+const BRAND_NAME = "Ai-Bid";
 const SITE_TITLE = "Ai-Bid — The visibility market for AI";
-const SITE_DESCRIPTION = "Discover AI products. Bid for attention. Climb the public leaderboard.";
+const SITE_DESCRIPTION = "Discover AI products, bid for attention, and climb the public visibility market on confirmed bid volume.";
 
 export const metadata: Metadata = {
-  title: SITE_TITLE,
-  description: SITE_DESCRIPTION,
   metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: "%s | Ai-Bid",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: BRAND_NAME,
+  creator: BRAND_NAME,
+  publisher: BRAND_NAME,
+  category: "technology",
+  keywords: ["AI products", "AI tools", "AI marketplace", "AI discovery", "product visibility", "Ai-Bid"],
   alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "Ai-Bid",
+    siteName: BRAND_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    locale: "en_US",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Ai-Bid — The visibility market for AI" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
-  icons: { icon: "/icon.svg", shortcut: "/icon.svg", apple: "/icon.svg" },
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: BRAND_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.svg`,
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: BRAND_NAME,
+  alternateName: "Ai Bid",
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
 };
 
 const themeInitScript = `(() => {
@@ -45,6 +89,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       </head>
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>
