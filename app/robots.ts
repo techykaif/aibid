@@ -1,2 +1,10 @@
 import type { MetadataRoute } from "next";
-export default function robots(): MetadataRoute.Robots { const base=process.env.NEXT_PUBLIC_SITE_URL||"https://ai-bid.lol"; return {rules:{userAgent:"*",allow:"/"},sitemap:`${base}/sitemap.xml`}; }
+
+const SITE_URL = "https://www.ai-bid.lol";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: { userAgent: "*", allow: "/" },
+    sitemap: `${SITE_URL}/sitemap.xml`,
+  };
+}
