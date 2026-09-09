@@ -143,6 +143,7 @@ async function persistCheckoutIntent(sessionId: string, data: Record<string, unk
 export async function POST(request: Request) {
   let productRef: DocumentReference | null = null;
   let logoCreated = false;
+  let checkoutSessionCreated = false;
 
   try {
     const isMultipart = request.headers.get("content-type")?.includes("multipart/form-data");
@@ -228,6 +229,7 @@ export async function POST(request: Request) {
       if (logoCreated) await db.collection("productLogos").doc(productRef.id).delete();
       return NextResponse.json({ error: session.message || session.detail || "Dodo checkout could not be created" }, { status: 502 });
     }
+    checkoutSessionCreated = true;
 
     await persistCheckoutIntent(sessionId, {
       productId: productRef.id,
@@ -239,8 +241,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ checkout_url: session.checkout_url });
   } catch (error) {
-    if (productRef) await productRef.delete().catch(() => undefined);
-    if (productRef && logoCreated) await db.collection("productLogos").doc(productRef.id).delete().catch(() => undefined);
+    if (productRef && !checkoutSessionCreated) {
+      await productRef.delete().catch(() => undefined);
+      if (logoCreated) await db.collection("productLogos").doc(productRef.id).delete().catch(() => undefined);
+    }
+    if (checkoutSessionCreated) {
+      console.error("Dodo checkout was created but its checkout intent could not be persisted", error);
+      return NextResponse.json({ error: "Checkout was created but could not be finalized. Please retry shortly." }, { status: 503 });
+    }
     return NextResponse.json(
       { error: error instanceof z.ZodError ? "Please check the form fields." : "Could not create checkout." },
       { status: 400 },

@@ -87,6 +87,8 @@ The production smoke suite probes payment trust boundaries without creating a ch
 
 The server never trusts a client-side success redirect. A product becomes live and a bid affects ranking only after a verified `payment.succeeded` webhook. Webhook processing is idempotent and Firestore updates are transactional. The server-created checkout intent is the authoritative USD bid amount; signed Dodo product/quantity and settlement data are independently verified, while metadata is only cross-checked.
 
+- **2026-09-09 09:39 IST:** identified and fixed a payment-reliability race in new-product checkout creation. If Dodo successfully created a checkout session but Firestore checkout-intent persistence then failed, the previous catch path deleted the pending product/logo even though Dodo could still deliver a signed success webhook. The checkout route now retains the pending product when a checkout session has been created, returns a retryable HTTP 503, and logs the condition so a later provider webhook can still reconcile safely. Cleanup remains unchanged for failures before a Dodo session exists.
+
 ## Measurement and privacy safety
 
 Public product responses use explicit allowlists and do not expose submitter email. Homepage stats read only public aggregate fields from `stats/global`. Unavailable configuration shows honest zero/configuration states rather than invented market activity.
