@@ -115,3 +115,50 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     </section>
   </main>;
 }
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
+
+  if (!isFirebaseConfigured) {
+    return { title: "Product — Ai-Bid", robots: { index: false, follow: false } };
+  }
+
+  try {
+    const snap = await db.collection("products").doc(id).get();
+    const data = snap.data();
+    if (!snap.exists || data?.status !== "live") {
+      return { title: "Product not found — Ai-Bid", robots: { index: false, follow: false } };
+    }
+
+    const name = String(data.name || "AI product");
+    const tagline = String(data.tagline || "Discover and rank AI products.");
+    const category = CATEGORIES.find((item) => item.slug === data.category)?.name || "AI Tools";
+    const description = data.description ? String(data.description) : tagline;
+    const canonical = `${base}/product/${encodeURIComponent(id)}`;
+    const ogImage = `${base}/api/og/${encodeURIComponent(id)}`;
+
+    return {
+      title: `${name} — ${category} — Ai-Bid`,
+      description,
+      alternates: { canonical },
+      robots: { index: true, follow: true },
+      openGraph: {
+        type: "website",
+        url: canonical,
+        title: `${name} — ${category} — Ai-Bid`,
+        description,
+        siteName: "Ai-Bid",
+        images: [{ url: ogImage, alt: `${name} on Ai-Bid` }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${name} — ${category} — Ai-Bid`,
+        description,
+        images: [ogImage],
+      },
+    };
+  } catch {
+    return { title: "Product — Ai-Bid", robots: { index: false, follow: false } };
+  }
+}
