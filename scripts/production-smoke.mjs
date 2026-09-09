@@ -38,6 +38,13 @@ for (const [name, path] of checks) {
     }
   }
 
+  if (path === "/" || path === "/sitemap.xml") {
+    const body = await response.text();
+    if (/games(?:-|\b)/i.test(body)) {
+      throw new Error(`${name} exposes a deferred Games launch surface`);
+    }
+  }
+
   console.log(`PASS ${name}: HTTP ${response.status}`);
 }
 
