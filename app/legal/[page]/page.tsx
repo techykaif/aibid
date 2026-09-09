@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import SiteHeader from "../../components/SiteHeader";
 
 const pages = {
@@ -53,6 +54,8 @@ const pages = {
 
 type PageKey = keyof typeof pages;
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return Object.keys(pages).map((page) => ({ page }));
 }
@@ -60,19 +63,23 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ page: string }> }): Promise<Metadata> {
   const { page } = await params;
   const content = pages[page as PageKey];
+  if (!content) {
+    return { title: "Page not found — Ai-Bid", robots: { index: false, follow: false } };
+  }
+
+  const canonical = `https://www.ai-bid.lol/legal/${page}`;
   return {
-    title: content ? `${content.title} — Ai-Bid` : "Legal — Ai-Bid",
-    description: content?.intro,
+    title: `${content.title} — Ai-Bid`,
+    description: content.intro,
+    alternates: { canonical },
+    robots: { index: true, follow: true },
   };
 }
 
 export default async function LegalPage({ params }: { params: Promise<{ page: string }> }) {
   const { page } = await params;
   const content = pages[page as PageKey];
-
-  if (!content) {
-    return <main className="shell"><SiteHeader /><section className="form"><h1>Page not found</h1><p className="muted">That legal page does not exist.</p><Link className="button primary" href="/">Back to Ai-Bid</Link></section></main>;
-  }
+  if (!content) notFound();
 
   return (
     <main className="shell">
