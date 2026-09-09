@@ -16,11 +16,14 @@ export const metadata: Metadata = {
     description: "See which AI products are winning today’s visibility race on Ai-Bid.",
     url: "/today",
     type: "website",
+    siteName: "Ai-Bid",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Today’s AI market on Ai-Bid" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Today’s AI market — Ai-Bid",
     description: "See which AI products are winning today’s visibility race on Ai-Bid.",
+    images: ["/opengraph-image"],
   },
 };
 
