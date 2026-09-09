@@ -37,8 +37,9 @@
 - Embeddable SVG rank badge endpoint
 - Dynamic product Open Graph image route with live category rank
 - SEO sitemap and robots metadata
-- Product pages now emit live-product-only canonical URLs, index/follow directives, per-product title/description, Open Graph/Twitter metadata, and the existing rank-aware `opengraph-image` route
-- Sitemap now includes live product URLs from Firestore, while retaining the static AI category/submit entries and failing safely to those static entries if the optional live-product read is unavailable
+- Product pages emit live-product-only canonical URLs, index/follow directives, per-product title/description, Open Graph/Twitter metadata, and the existing rank-aware `opengraph-image` route
+- AI category pages emit explicit canonical URLs, index/follow directives, category-specific title/description, and Open Graph/Twitter metadata
+- Sitemap includes live product URLs from Firestore, while retaining the static AI category/submit entries and failing safely to those static entries if the optional live-product read is unavailable
 - Firestore security rules and composite indexes
 - Environment variable template
 - Public Terms, Privacy, Rules, and FAQ pages
@@ -93,6 +94,7 @@ The server never trusts a client-side success redirect. A product becomes live a
 - **2026-09-09 16:52 IST:** identified and fixed the equivalent payment-reliability race in existing-product bids. If Dodo created the bid checkout but checkout-intent persistence failed, the bid route previously returned a generic 400 even though a legitimate signed webhook could still arrive. The bid route now marks the Dodo session as created before persisting the intent and returns retryable HTTP 503 when intent persistence fails, preserving the existing live product and avoiding a false client-success/error classification.
 - **2026-09-09 20:45 IST:** SEO audit found that product pages had no explicit per-product canonical, robots, Open Graph/Twitter metadata, or link to the existing rank-aware Next.js `opengraph-image` route. Added live-product-only metadata with canonical URLs, index/follow controls, product-specific title/description, and social cards pointing to the dynamic rank-aware image. Missing/inactive/config-error product metadata is now explicitly noindex rather than accidentally indexable.
 - **2026-09-09 20:48 IST:** SEO audit found that the sitemap exposed only the homepage, AI categories, and submission page even though live product pages are permanent SEO surfaces. Updated `app/sitemap.ts` to include only `status == "live"` product URLs from Firestore, with a bounded query and safe static fallback when the optional product read is unavailable. No future-market URLs or fabricated listings are added.
+- **2026-09-09 21:35 IST:** recurring SEO audit found AI category pages had title/description metadata but lacked explicit canonical, robots, Open Graph, and Twitter metadata. Added category-specific canonical URLs and index/follow directives plus social metadata, while preserving the AI-only category taxonomy and avoiding future-market SEO surfaces.
 
 ## Measurement and privacy safety
 
