@@ -26,6 +26,8 @@ async function persistCheckoutIntent(sessionId: string, data: Record<string, unk
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  let checkoutSessionCreated = false;
+
   try {
     const { id } = await params;
     const input = schema.parse(await request.json());
@@ -87,6 +89,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         { status: 502 },
       );
     }
+    checkoutSessionCreated = true;
 
     await persistCheckoutIntent(sessionId, {
       productId: id,
@@ -98,6 +101,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ checkout_url: session.checkout_url });
   } catch (error) {
+    if (checkoutSessionCreated) {
+      console.error("Dodo bid checkout was created but its checkout intent could not be persisted", error);
+      return NextResponse.json({ error: "Checkout was created but could not be finalized. Please retry shortly." }, { status: 503 });
+    }
     return NextResponse.json(
       { error: error instanceof z.ZodError ? "Please check your bid details." : "Could not create checkout." },
       { status: 400 },
