@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Payments are not configured" }, { status: 503 });
     }
 
-    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
+    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.ai-bid.lol";
     const dodoBase = process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode"
       ? "https://live.dodopayments.com"
       : "https://test.dodopayments.com";
