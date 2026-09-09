@@ -4,12 +4,13 @@ import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 
 export const revalidate = 300;
 
+const SITE_URL = "https://www.ai-bid.lol";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
   const entries: MetadataRoute.Sitemap = [
-    { url: base, lastModified: new Date() },
-    ...CATEGORIES.map((c) => ({ url: `${base}/category/${c.slug}`, lastModified: new Date() })),
-    { url: `${base}/submit`, lastModified: new Date() },
+    { url: SITE_URL, lastModified: new Date() },
+    ...CATEGORIES.map((c) => ({ url: `${SITE_URL}/category/${c.slug}`, lastModified: new Date() })),
+    { url: `${SITE_URL}/submit`, lastModified: new Date() },
   ];
 
   if (!isFirebaseConfigured) return entries;
@@ -21,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .get();
 
     entries.push(...products.docs.map((doc) => ({
-      url: `${base}/product/${encodeURIComponent(doc.id)}`,
+      url: `${SITE_URL}/product/${encodeURIComponent(doc.id)}`,
       lastModified: doc.data().lastBidAt?.toDate?.() || doc.data().createdAt?.toDate?.() || new Date(),
     })));
   } catch {
