@@ -37,6 +37,7 @@
 - Embeddable SVG rank badge endpoint
 - Dynamic product Open Graph image route with live category rank
 - SEO sitemap and robots metadata
+- Product pages now emit live-product-only canonical URLs, index/follow directives, per-product title/description, Open Graph/Twitter metadata, and the existing rank-aware `opengraph-image` route
 - Firestore security rules and composite indexes
 - Environment variable template
 - Public Terms, Privacy, Rules, and FAQ pages
@@ -89,6 +90,7 @@ The server never trusts a client-side success redirect. A product becomes live a
 
 - **2026-09-09 09:39 IST:** identified and fixed a payment-reliability race in new-product checkout creation. If Dodo successfully created a checkout session but Firestore checkout-intent persistence then failed, the previous catch path deleted the pending product/logo even though Dodo could still deliver a signed success webhook. The checkout route now retains the pending product when a checkout session has been created, returns a retryable HTTP 503, and logs the condition so a later provider webhook can still reconcile safely. Cleanup remains unchanged for failures before a Dodo session exists.
 - **2026-09-09 16:52 IST:** identified and fixed the equivalent payment-reliability race in existing-product bids. If Dodo created the bid checkout but checkout-intent persistence failed, the route previously returned a generic 400 even though a legitimate signed webhook could still arrive. The bid route now marks the Dodo session as created before persisting the intent and returns retryable HTTP 503 when intent persistence fails, preserving the existing live product and avoiding a false client-success/error classification.
+- **2026-09-09 20:45 IST:** SEO audit found that product pages had no explicit per-product canonical, robots, Open Graph/Twitter metadata, or link to the existing rank-aware Next.js `opengraph-image` route. Added live-product-only metadata with canonical URLs, index/follow controls, product-specific title/description, and social cards pointing to the dynamic rank-aware image. Missing/inactive/config-error product metadata is now explicitly noindex rather than accidentally indexable.
 
 ## Measurement and privacy safety
 
