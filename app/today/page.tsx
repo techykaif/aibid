@@ -1,9 +1,28 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteHeader from "@/app/components/SiteHeader";
 import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import type { Product } from "@/lib/types";
 
 export const revalidate = 15;
+
+export const metadata: Metadata = {
+  title: "Today’s AI market — Ai-Bid",
+  description: "See which AI products are winning today’s visibility race on Ai-Bid.",
+  alternates: { canonical: "/today" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "Today’s AI market — Ai-Bid",
+    description: "See which AI products are winning today’s visibility race on Ai-Bid.",
+    url: "/today",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Today’s AI market — Ai-Bid",
+    description: "See which AI products are winning today’s visibility race on Ai-Bid.",
+  },
+};
 
 async function getTodayProducts() {
   if (!isFirebaseConfigured) return [] as Product[];
