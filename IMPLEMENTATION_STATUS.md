@@ -45,7 +45,7 @@
 - UI CSS is consolidated into `app/globals.css`; documented dual-theme tokens, allowed radii, sans-only typography, no `!important`, and no box-shadow declarations
 - Main-branch CI runs TypeScript no-emit typecheck, ESLint, and production build before the public production smoke suite
 - Next.js 16 linting uses the supported ESLint CLI/flat config
-- Production smoke coverage checks homepage, public APIs, AI category routes, deferred Games route inactivity (`404` + `noindex`), SEO/legal routes, invalid product/redirect/logo/badge IDs, checkout cancellation, private-email leakage, malformed checkout requests, unsigned Dodo webhooks, removed Games checkout requests, SSRF boundary handling, and one real live product's public page/badge/logo when production has live data
+- Production smoke coverage checks homepage, public APIs, AI category routes, homepage/sitemap exclusion of deferred Games, deferred Games route inactivity (`404` + `noindex`), SEO/legal routes, invalid product/redirect/logo/badge IDs, checkout cancellation, private-email leakage, malformed checkout requests, unsigned Dodo webhooks, removed Games checkout requests, SSRF boundary handling, and one real live product's public page/badge/logo when production has live data
 - Production smoke never creates a real payment or mutates production click/payment state
 
 ## Launch scope and roadmap
@@ -69,8 +69,9 @@ The shared marketplace primitives remain reusable so a future market can be adde
 
 ## Current production verification
 
-- **2026-09-09 01:53 IST:** the latest AI-only `main` commit `a5b748fff4bbd48553ca4a80c215e02e5a3bb66d` is deployed to the production Vercel deployment and is `READY`. The production domain aliases include `ai-bid.lol` and `www.ai-bid.lol`.
-- Fresh production reads of `/api/today` and `/api/products?limit=1` returned HTTP 200 JSON. `/api/today` currently returns an empty daily board, while `/api/products` returned a real live AI product; no fabricated/demo fallback was observed.
+- **2026-09-09 06:20 IST:** latest `main` commit `2a8ba60aac0bd411615044d4f3c541095fca5b5f` adds production-smoke regression coverage preventing deferred Games from appearing on the homepage or sitemap. The previous production deployment for `fb235c64dc2fa3b2eca174ee7a2b8e76b8f23fdb` is `READY`; the new commit has not yet received a Vercel status result at this check.
+- **2026-09-09 06:20 IST:** the latest READY production deployment for `fb235c64dc2fa3b2eca174ee7a2b8e76b8f23fdb` responds successfully on `/api/today` with HTTP 200 JSON. Vercel runtime error/fatal logs for the latest deployment in the checked one-hour window returned no entries.
+- Previous fresh production reads of `/api/products?limit=1` returned a real live AI product; no fabricated/demo fallback was observed.
 - The live AI category route `/category/coding` returned HTTP 200 with the expected AI-only category navigation and server-rendered leaderboard.
 - The deferred Games category route `/category/games-action` returned HTTP 404 with `noindex`, confirming it is not an active launch surface.
 - The live product's Firestore-backed logo route returned HTTP 200 with `Content-Type: image/webp`, `X-Content-Type-Options: nosniff`, `Cache-Control: public, max-age=86400`, and a 1,590-byte binary payload, well below the 180KB application ceiling.
