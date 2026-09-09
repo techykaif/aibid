@@ -53,6 +53,7 @@ const pages = {
 } as const;
 
 type PageKey = keyof typeof pages;
+const SITE_URL = "https://www.ai-bid.lol";
 
 export const dynamicParams = false;
 
@@ -67,12 +68,27 @@ export async function generateMetadata({ params }: { params: Promise<{ page: str
     return { title: "Page not found — Ai-Bid", robots: { index: false, follow: false } };
   }
 
-  const canonical = `https://www.ai-bid.lol/legal/${page}`;
+  const canonical = `${SITE_URL}/legal/${page}`;
+  const title = `${content.title} — Ai-Bid`;
   return {
-    title: `${content.title} — Ai-Bid`,
+    title,
     description: content.intro,
     alternates: { canonical },
     robots: { index: true, follow: true },
+    openGraph: {
+      type: "website",
+      url: canonical,
+      siteName: "Ai-Bid",
+      title,
+      description: content.intro,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${content.title} — Ai-Bid` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: content.intro,
+      images: ["/opengraph-image"],
+    },
   };
 }
 
