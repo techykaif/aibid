@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   publisher: BRAND_NAME,
   category: "technology",
   keywords: ["AI products", "AI tools", "AI marketplace", "AI discovery", "product visibility", "Ai-Bid"],
-  alternates: { canonical: "/" },
   robots: {
     index: true,
     follow: true,
@@ -50,23 +49,6 @@ export const metadata: Metadata = {
   },
 };
 
-const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: BRAND_NAME,
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.svg`,
-};
-
-const websiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: BRAND_NAME,
-  alternateName: "Ai Bid",
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
-};
-
 const themeInitScript = `(() => {
   try {
     const saved = localStorage.getItem("ai-bid-theme");
@@ -86,8 +68,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       </head>
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>
