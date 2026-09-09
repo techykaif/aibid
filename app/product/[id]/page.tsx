@@ -118,7 +118,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ai-bid.lol";
+  const base = "https://www.ai-bid.lol";
 
   if (!isFirebaseConfigured) {
     return { title: "Product — Ai-Bid", robots: { index: false, follow: false } };
