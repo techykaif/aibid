@@ -5,12 +5,14 @@ import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 export const revalidate = 300;
 
 const SITE_URL = "https://www.ai-bid.lol";
+const LEGAL_PAGES = ["terms", "privacy", "rules", "faq"] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
-    { url: SITE_URL, lastModified: new Date() },
-    ...CATEGORIES.map((c) => ({ url: `${SITE_URL}/category/${c.slug}`, lastModified: new Date() })),
-    { url: `${SITE_URL}/submit`, lastModified: new Date() },
+    { url: SITE_URL },
+    { url: `${SITE_URL}/today` },
+    ...CATEGORIES.map((c) => ({ url: `${SITE_URL}/category/${c.slug}` })),
+    ...LEGAL_PAGES.map((page) => ({ url: `${SITE_URL}/legal/${page}` })),
   ];
 
   if (!isFirebaseConfigured) return entries;
@@ -23,10 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     entries.push(...products.docs.map((doc) => ({
       url: `${SITE_URL}/product/${encodeURIComponent(doc.id)}`,
-      lastModified: doc.data().lastBidAt?.toDate?.() || doc.data().createdAt?.toDate?.() || new Date(),
+      lastModified: doc.data().lastBidAt?.toDate?.() || doc.data().createdAt?.toDate?.() || undefined,
     })));
   } catch {
-    // Keep the static AI sitemap available if the optional live-product read is unavailable.
+    // Keep the canonical static sitemap available if the optional live-product read is unavailable.
   }
 
   return entries;
