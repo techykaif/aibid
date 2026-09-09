@@ -62,8 +62,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const canonical = `https://www.ai-bid.lol/category/${encodeURIComponent(slug)}`;
-  const title = `${category.name} — ${market.name} — Ai-Bid`;
-  const description = `Public ${market.name} leaderboard for ${category.name}. Discover products and rank higher with confirmed bids.`;
+  const title = `${category.name} — Ai-Bid`;
+  const description = `Public AI leaderboard for ${category.name}. Discover products and rank higher with confirmed bids.`;
 
   return {
     title,
