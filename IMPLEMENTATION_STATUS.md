@@ -47,6 +47,7 @@
 - Next.js 16 linting uses the supported ESLint CLI/flat config
 - Production smoke coverage checks homepage, public APIs, AI category routes, homepage/sitemap exclusion of deferred Games, deferred Games route inactivity (`404` + `noindex`), SEO/legal routes, invalid product/redirect/logo/badge IDs, checkout cancellation, private-email leakage, malformed checkout requests, unsigned Dodo webhooks, removed Games checkout requests, SSRF boundary handling, and one real live product's public page/badge/logo when production has live data
 - Production smoke never creates a real payment or mutates production click/payment state
+- ESLint is pinned to the ESLint 9 major so the Next.js 16 ESLint configuration's React rules remain compatible with the lint rule API
 
 ## Launch scope and roadmap
 
@@ -69,6 +70,7 @@ The shared marketplace primitives remain reusable so a future market can be adde
 
 ## Current production verification
 
+- **2026-09-09 06:41 IST:** GitHub Actions run `112` for `f8238a591c3798606ad8788e5800c22f75463bcc` reached TypeScript success but failed at ESLint before build/smoke. The failure was an ESLint 10 incompatibility in `react/display-name` (`contextOrFilename.getFilename is not a function`) from the Next.js-bundled React plugin. The repository's `eslint` dependency was therefore pinned from the incompatible 10.x range to the compatible 9.x major; build/smoke were skipped by that failed run and remain to be revalidated on the next push.
 - **2026-09-09 06:20 IST:** latest `main` commit `2a8ba60aac0bd411615044d4f3c541095fca5b5f` adds production-smoke regression coverage preventing deferred Games from appearing on the homepage or sitemap. The previous production deployment for `fb235c64dc2fa3b2eca174ee7a2b8e76b8f23fdb` is `READY`; the new commit has not yet received a Vercel status result at this check.
 - **2026-09-09 06:20 IST:** the latest READY production deployment for `fb235c64dc2fa3b2eca174ee7a2b8e76b8f23fdb` responds successfully on `/api/today` with HTTP 200 JSON. Vercel runtime error/fatal logs for the latest deployment in the checked one-hour window returned no entries.
 - Previous fresh production reads of `/api/products?limit=1` returned a real live AI product; no fabricated/demo fallback was observed.
