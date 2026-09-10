@@ -41,7 +41,7 @@
 - AI category pages emit explicit canonical URLs, index/follow directives, category-specific title/description, and Open Graph/Twitter metadata
 - Today page emits explicit canonical, index/follow, Open Graph, and Twitter metadata
 - Submission page is explicitly excluded from search indexing while remaining followable
-- Report page is now explicitly excluded from search indexing while remaining reachable for moderation/report workflows
+- Report page is explicitly excluded from search indexing while remaining reachable for moderation/report workflows
 - Sitemap includes live product URLs from Firestore, while retaining the static AI category/submit entries and failing safely to those static entries if the optional live-product read is unavailable
 - Canonical SEO host is documented as `https://www.ai-bid.lol`; robots/sitemap and page metadata fallbacks now use the same host
 - Firestore security rules and composite indexes
@@ -86,7 +86,7 @@ The shared marketplace primitives remain reusable so a future market can be adde
 
 ## Current production verification
 
-- **2026-09-10 20:30 IST:** latest `main` implementation state is `2f673b5ed4ae80c5e5fe26755b5544e6fa2eb3fd` (`test: enforce noindex private report surface`), with a preceding `d7ae98b0b198a8f9d58f837877820e524ecd7dd2` implementation commit adding `noindex,nofollow` metadata to `/report`. The smoke suite now exercises `/report` and asserts the private moderation surface remains outside search indexing. No typecheck, lint, build, or production-smoke result is claimed for these new commits until GitHub reports them.
+- **2026-09-10 20:30 IST:** latest `main` implementation state is `2f673b5ed4ae80c5e5fe26755b5544e6fa2eb3fd` (`test: enforce noindex private report surface`), preceded by `d7ae98b0b198a8f9d58f837877820e524ecd7dd2` adding `noindex,nofollow` metadata to `/report`. The smoke suite now exercises `/report` and asserts the private moderation surface remains outside search indexing. The Vercel status for `d345b1e78b25aaf77f4d5aadf942d0ee42c5d896` is currently `failure` with Vercel reporting a build-rate-limit/Pro-upgrade condition; this is an infrastructure/deployment limitation, not a code-test result. No typecheck, lint, build, or production-smoke pass is claimed.
 - **2026-09-10 18:59 IST:** `537861f9c3bee4fe8e52dc917c7c10563c61dbb9` (`test: verify API noindex boundaries`) added the production-smoke assertion for API `X-Robots-Tag: noindex, nofollow`, following the `bedb313d2d7524093bfa32fed322358f013b2f6d` implementation that adds the response header.
 - **2026-09-10 17:55 IST:** `75e59975a7cd612c550c5e16d8f77df0b74843d8` added a read-only production-smoke assertion that `/robots.txt` points to the canonical `https://www.ai-bid.lol/sitemap.xml` and contains no deferred Games surface. That implementation was subsequently recorded in status by `5c826345ec366cf2af2d07b3cd98a9fc795e0548`.
 - **2026-09-10 16:55 IST:** the recurring AI-only feature-wiring audit found the production smoke suite exercised the Games checkout boundary but did not directly inspect the rendered `/submit` surface for deferred-market options. `c2784d7f176d2c504f01d6dcb2f84619c90b3160` added that read-only production smoke assertion.
