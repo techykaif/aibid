@@ -35,21 +35,31 @@ for (const [name, path] of checks) {
     }
 
     const body = await response.text();
-    if (body.includes('"email"') || body.includes('"submitterEmail"')) {
+    if (body.includes('\"email\"') || body.includes('\"submitterEmail\"')) {
       throw new Error(`${name} appears to expose a private email field`);
     }
   }
 
   if (path === "/" || path === "/today" || path === "/category/coding") {
     const body = await response.text();
-    if (!/<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.ai-bid\.lol\//i.test(body)) {
+    if (!/<link[^>]+rel=[\"']canonical[\"'][^>]+href=[\"']https:\/\/www\.ai-bid\.lol\//i.test(body)) {
       throw new Error(`${name} is missing the canonical www.ai-bid.lol link`);
     }
-    if (!/<meta[^>]+property=["']og:title["']/i.test(body)) {
+    if (!/<meta[^>]+property=[\"']og:title[\"']/i.test(body)) {
       throw new Error(`${name} is missing Open Graph title metadata`);
     }
-    if (!/<meta[^>]+name=["']twitter:card["']/i.test(body)) {
+    if (!/<meta[^>]+name=[\"']twitter:card[\"']/i.test(body)) {
       throw new Error(`${name} is missing Twitter card metadata`);
+    }
+  }
+
+  if (path === "/robots.txt") {
+    const body = await response.text();
+    if (!/^Sitemap:\s*https:\/\/www\.ai-bid\.lol\/sitemap\.xml\s*$/im.test(body)) {
+      throw new Error("robots.txt is missing the canonical www.ai-bid.lol sitemap declaration");
+    }
+    if (/games(?:-|\b)/i.test(body)) {
+      throw new Error("robots.txt exposes a deferred Games launch surface");
     }
   }
 
@@ -228,10 +238,10 @@ if (products.length > 0) {
     throw new Error(`live product page returned HTTP ${productPage.status}, expected 200`);
   }
   const productBody = await productPage.text();
-  if (!/<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.ai-bid\.lol\/product\//i.test(productBody)) {
+  if (!/<link[^>]+rel=[\"']canonical[\"'][^>]+href=[\"']https:\/\/www\.ai-bid\.lol\/product\//i.test(productBody)) {
     throw new Error(`live product page ${product.id} is missing its canonical URL`);
   }
-  if (!/<meta[^>]+property=["']og:image["']/i.test(productBody)) {
+  if (!/<meta[^>]+property=[\"']og:image[\"']/i.test(productBody)) {
     throw new Error(`live product page ${product.id} is missing its Open Graph image metadata`);
   }
   console.log(`PASS live product page + SEO metadata: HTTP 200 (${product.id})`);
