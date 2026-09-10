@@ -9,6 +9,7 @@ const checks = [
   ["stats API", "/api/stats"],
   ["AI category", "/category/coding"],
   ["submit", "/submit"],
+  ["report", "/report"],
   ["robots", "/robots.txt"],
   ["sitemap", "/sitemap.xml"],
   ["terms", "/legal/terms"],
@@ -82,6 +83,13 @@ for (const [name, path] of checks) {
     }
     if (!/AI Coding & Dev Tools/i.test(body) || !/AI Writing & Content/i.test(body)) {
       throw new Error("submission page is missing expected AI category options");
+    }
+  }
+
+  if (path === "/report") {
+    const body = await response.text();
+    if (!/<meta[^>]+name=[\"']robots[\"'][^>]+content=[\"']noindex, ?nofollow[\"']/i.test(body)) {
+      throw new Error("report page is missing its noindex, nofollow boundary");
     }
   }
 
