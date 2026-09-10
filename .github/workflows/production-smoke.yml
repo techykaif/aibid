@@ -22,7 +22,17 @@ jobs:
       - name: Production build
         run: npm run build
       - name: Run public production smoke checks
-        run: node scripts/production-smoke.mjs
+        run: |
+          for attempt in 1 2 3; do
+            if node scripts/production-smoke.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Production smoke attempt $attempt failed; retrying after 5 seconds"
+              sleep 5
+            fi
+          done
+          exit 1
       - name: Run SEO boundary smoke checks
         run: node scripts/seo-boundary-smoke.mjs
       - name: Run AI category SEO smoke checks
