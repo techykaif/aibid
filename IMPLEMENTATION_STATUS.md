@@ -57,6 +57,7 @@
 - Vercel Web Analytics is installed globally through the Next.js root layout
 - 404 responses have an explicit `noindex,nofollow` boundary rather than inheriting a root index directive
 - Malformed Dodo webhook requests missing required signature headers are rejected with HTTP 401 before verification
+- `/today` uses the established `board-label` treatment for the market label instead of an undeclared/reused `section-kicker` style
 
 ## Launch scope and roadmap
 
@@ -109,6 +110,7 @@ The server never trusts a client-side success redirect. A product becomes live a
 - **2026-09-09 21:35 IST:** recurring SEO audit found AI category pages had title/description metadata but lacked explicit canonical, robots, Open Graph, and Twitter metadata. Added category-specific canonical URLs and index/follow directives plus social metadata, while preserving the AI-only category taxonomy and avoiding future-market SEO surfaces.
 - **2026-09-09 22:04 IST:** recurring SEO/feature-wiring audit found the daily `/today` board inherited only root metadata and therefore had no explicit canonical/social metadata; it now declares its own canonical `/today`, index/follow directives, and social metadata. The anonymous `/submit` conversion surface is now explicitly `noindex,follow` so it is not treated as a permanent search landing page.
 - **2026-09-09 23:24 IST:** recurring SEO audit confirmed the canonical-host implementation is internally consistent in source: `robots.ts`, `sitemap.ts`, root `metadataBase`, category metadata, product metadata, and `.env.example` all use `https://www.ai-bid.lol`. The source tree contains no active Games/Open Source/Music category route or submission market selector, and the existing production smoke contract covers Games exclusion. Live crawler fetch remains unverified from this environment as noted above.
+- **2026-09-10 09:57 IST:** recurring feature-wiring/design audit found `/today` was using an undeclared `section-kicker` class even though `AGENTS.md` explicitly prohibits adding/reusing that kicker treatment outside the hero. Replaced the class with the existing `board-label` treatment; no new CSS or dependency was introduced.
 
 ## Measurement and privacy safety
 
