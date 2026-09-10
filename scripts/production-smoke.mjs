@@ -3,6 +3,7 @@ const baseUrl = process.env.AIBID_BASE_URL || "https://www.ai-bid.lol";
 const headers = { "user-agent": "Ai-Bid-Production-Smoke/1.0" };
 const checks = [
   ["homepage", "/"],
+  ["today", "/today"],
   ["today API", "/api/today"],
   ["products API", "/api/products"],
   ["stats API", "/api/stats"],
@@ -38,6 +39,19 @@ for (const [name, path] of checks) {
     }
   }
 
+  if (path === "/" || path === "/today" || path === "/category/coding") {
+    const body = await response.text();
+    if (!/<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.ai-bid\.lol\//i.test(body)) {
+      throw new Error(`${name} is missing the canonical www.ai-bid.lol link`);
+    }
+    if (!/<meta[^>]+property=["']og:title["']/i.test(body)) {
+      throw new Error(`${name} is missing Open Graph title metadata`);
+    }
+    if (!/<meta[^>]+name=["']twitter:card["']/i.test(body)) {
+      throw new Error(`${name} is missing Twitter card metadata`);
+    }
+  }
+
   if (path === "/" || path === "/sitemap.xml") {
     const body = await response.text();
     if (/games(?:-|\b)/i.test(body)) {
@@ -47,6 +61,19 @@ for (const [name, path] of checks) {
 
   console.log(`PASS ${name}: HTTP ${response.status}`);
 }
+
+const apexHost = await fetch("https://ai-bid.lol/", {
+  redirect: "manual",
+  headers,
+});
+if (![301, 302, 307, 308].includes(apexHost.status)) {
+  throw new Error(`apex host returned HTTP ${apexHost.status}, expected a redirect to canonical www host`);
+}
+const apexLocation = apexHost.headers.get("location") || "";
+if (!/^https:\/\/www\.ai-bid\.lol(?:\/|$)/i.test(apexLocation)) {
+  throw new Error(`apex host redirect does not target https://www.ai-bid.lol: ${apexLocation}`);
+}
+console.log(`PASS canonical host redirect: HTTP ${apexHost.status} -> ${apexLocation}`);
 
 const gamesCategory = await fetch(new URL("/category/games-action", baseUrl), {
   redirect: "manual",
@@ -189,7 +216,14 @@ if (products.length > 0) {
   if (productPage.status !== 200) {
     throw new Error(`live product page returned HTTP ${productPage.status}, expected 200`);
   }
-  console.log(`PASS live product page: HTTP 200 (${product.id})`);
+  const productBody = await productPage.text();
+  if (!/<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.ai-bid\.lol\/product\//i.test(productBody)) {
+    throw new Error(`live product page ${product.id} is missing its canonical URL`);
+  }
+  if (!/<meta[^>]+property=["']og:image["']/i.test(productBody)) {
+    throw new Error(`live product page ${product.id} is missing its Open Graph image metadata`);
+  }
+  console.log(`PASS live product page + SEO metadata: HTTP 200 (${product.id})`);
 
   const badge = await fetch(new URL(`/api/badge/${encodeURIComponent(product.id)}.svg`, baseUrl), {
     redirect: "manual",
