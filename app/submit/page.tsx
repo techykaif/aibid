@@ -35,7 +35,7 @@ export default function SubmitPage() {
     <SiteHeader />
     <div className="submit-grid">
       <form className="form" onSubmit={submit}>
-        <div className="eyebrow">List your AI product</div>
+        <div className="board-label">LIST YOUR AI PRODUCT</div>
         <h1>Buy your place on the board.</h1>
         <p className="muted" style={{ whiteSpace:"normal", lineHeight:1.6 }}>Every listing starts with a bid. Choose a category, tell people what you built, then compete for attention.</p>
 
@@ -54,7 +54,7 @@ export default function SubmitPage() {
         <p className="muted bid-note">One-time bid · minimum $5 · payment verified by webhook</p>
       </form>
       <aside className="form-aside">
-        <div className="eyebrow">How it works</div>
+        <div className="board-label">HOW IT WORKS</div>
         <h3>Turn attention into a position.</h3>
         <p>No subscriptions. No complicated ad manager. Your cumulative confirmed bid is your position.</p>
         <ul><li><b>01</b> · Create your listing</li><li><b>02</b> · Place the opening bid</li><li><b>03</b> · Get a public product page</li><li><b>04</b> · Outbid the field</li></ul>
