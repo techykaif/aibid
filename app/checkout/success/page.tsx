@@ -4,7 +4,7 @@ export default function SuccessPage() {
   return (
     <main className="shell">
       <div className="form" style={{ textAlign: "center", marginTop: 100 }}>
-        <div className="eyebrow">Checkout submitted</div>
+        <div className="board-label">CHECKOUT SUBMITTED</div>
         <h1>Payment confirmation pending.</h1>
         <p className="muted">
           Your listing or bid will go live only after the signed Dodo webhook confirms the payment. This page does not confirm payment status.

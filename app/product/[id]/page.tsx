@@ -93,7 +93,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <div className="product-hero">
       <article className="product-card">
-        <div className="eyebrow">{category}</div>
+        <div className="board-label">{category.toUpperCase()}</div>
         <div className="product" style={{ marginTop: 18 }}>
           <img className="logo" src={product.logoUrl || "/logo.svg"} alt="" />
           <div><h1>{product.name}</h1><div className="muted">{product.tagline}</div></div>

@@ -101,7 +101,7 @@ export default async function LegalPage({ params }: { params: Promise<{ page: st
     <main className="shell">
       <SiteHeader />
       <article className="form" aria-labelledby="legal-title">
-        <div className="eyebrow">AI-BID / {content.title.toUpperCase()}</div>
+        <div className="board-label">AI-BID / {content.title.toUpperCase()}</div>
         <h1 id="legal-title">{content.title}</h1>
         <p className="muted" style={{ whiteSpace: "normal", fontSize: 14, lineHeight: 1.7 }}>{content.intro}</p>
         <div style={{ display: "grid", gap: 24, marginTop: 30 }}>

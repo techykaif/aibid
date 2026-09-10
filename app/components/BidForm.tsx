@@ -30,7 +30,7 @@ export default function BidForm({ productId, currentTotal }: { productId: string
 
   return (
     <form onSubmit={bid} className="form bid-form" style={{ margin: "20px 0 0" }}>
-      <div className="eyebrow">Move the market</div>
+      <div className="board-label">MOVE THE MARKET</div>
       <h2>Raise the rank.</h2>
       <p className="muted bid-intro">Your confirmed bid is added to the product total. Higher total, higher position.</p>
 

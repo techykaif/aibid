@@ -4,7 +4,7 @@ export default function CancelPage() {
   return (
     <main className="shell">
       <div className="form" style={{ textAlign: "center", marginTop: 100 }}>
-        <div className="eyebrow">Checkout canceled</div>
+        <div className="board-label">CHECKOUT CANCELED</div>
         <h1>No payment was confirmed.</h1>
         <p className="muted">
           Your listing or bid is not activated by this page. You can return to Ai-Bid and try again when you are ready.

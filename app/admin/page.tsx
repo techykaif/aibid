@@ -62,7 +62,7 @@ export default async function AdminPage() {
       <SiteHeader />
       <section className="board">
         <div className="boardhead" style={{ padding: 20 }}>
-          <div><div className="eyebrow">Protected admin</div><strong>Open reports</strong><div className="muted">Review listings and unpublish rule-breaking products.</div></div>
+          <div><div className="board-label">PROTECTED ADMIN</div><strong>Open reports</strong><div className="muted">Review listings and unpublish rule-breaking products.</div></div>
         </div>
         {reports.docs.length === 0 ? (
           <div className="empty"><div className="empty-icon">✓</div><strong>No open reports.</strong><span>The moderation queue is clear.</span></div>

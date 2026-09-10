@@ -26,7 +26,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
     <main className="shell">
       <SiteHeader />
       <section className="form">
-        <div className="eyebrow">Protected admin</div>
+        <div className="board-label">PROTECTED ADMIN</div>
         <h1>Moderation</h1>
         <p className="muted" style={{ whiteSpace: "normal", lineHeight: 1.7 }}>
           Use the server-side admin token configured for this deployment. The token is never sent to the browser as page content.

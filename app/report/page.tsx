@@ -21,7 +21,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
     <main className="shell">
       <SiteHeader />
       <section className="form">
-        <div className="eyebrow">Report listing</div>
+        <div className="board-label">REPORT LISTING</div>
         <h1>Flag {productName}</h1>
         <p className="muted" style={{ whiteSpace: "normal", lineHeight: 1.7 }}>
           Tell us what is wrong with this listing. Reports are reviewed after submission and may result in the listing being unpublished.
