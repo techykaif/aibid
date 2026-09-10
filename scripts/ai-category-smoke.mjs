@@ -3,10 +3,10 @@ const headers = { "user-agent": "Ai-Bid-AI-Category-Smoke/1.0" };
 const categories = [
   "coding",
   "writing",
-  "image-design",
-  "video-audio",
-  "agents-automation",
-  "productivity-chat",
+  "image",
+  "video",
+  "agents",
+  "productivity",
   "other",
 ];
 
