@@ -23,3 +23,5 @@ jobs:
         run: npm run build
       - name: Run public production smoke checks
         run: node scripts/production-smoke.mjs
+      - name: Run SEO boundary smoke checks
+        run: node scripts/seo-boundary-smoke.mjs
