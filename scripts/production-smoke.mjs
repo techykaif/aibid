@@ -8,6 +8,7 @@ const checks = [
   ["products API", "/api/products"],
   ["stats API", "/api/stats"],
   ["AI category", "/category/coding"],
+  ["submit", "/submit"],
   ["robots", "/robots.txt"],
   ["sitemap", "/sitemap.xml"],
   ["terms", "/legal/terms"],
@@ -56,6 +57,16 @@ for (const [name, path] of checks) {
     const body = await response.text();
     if (/games(?:-|\b)/i.test(body)) {
       throw new Error(`${name} exposes a deferred Games launch surface`);
+    }
+  }
+
+  if (path === "/submit") {
+    const body = await response.text();
+    if (/games|open source|music/i.test(body)) {
+      throw new Error("submission page exposes a deferred future-market option");
+    }
+    if (!/AI Coding & Dev Tools/i.test(body) || !/AI Writing & Content/i.test(body)) {
+      throw new Error("submission page is missing expected AI category options");
     }
   }
 
