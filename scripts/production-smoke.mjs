@@ -29,6 +29,11 @@ for (const [name, path] of checks) {
   }
 
   if (path.startsWith("/api/")) {
+    const robotsTag = response.headers.get("x-robots-tag") || "";
+    if (robotsTag.toLowerCase() !== "noindex, nofollow") {
+      throw new Error(`${name} is missing the noindex, nofollow X-Robots-Tag`);
+    }
+
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("application/json")) {
       throw new Error(`${name} did not return JSON`);
