@@ -25,3 +25,5 @@ jobs:
         run: node scripts/production-smoke.mjs
       - name: Run SEO boundary smoke checks
         run: node scripts/seo-boundary-smoke.mjs
+      - name: Run AI category SEO smoke checks
+        run: node scripts/ai-category-smoke.mjs
