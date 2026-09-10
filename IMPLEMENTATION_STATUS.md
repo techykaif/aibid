@@ -41,6 +41,7 @@
 - AI category pages emit explicit canonical URLs, index/follow directives, category-specific title/description, and Open Graph/Twitter metadata
 - Today page emits explicit canonical, index/follow, Open Graph, and Twitter metadata
 - Submission page is explicitly excluded from search indexing while remaining followable
+- Report page is now explicitly excluded from search indexing while remaining reachable for moderation/report workflows
 - Sitemap includes live product URLs from Firestore, while retaining the static AI category/submit entries and failing safely to those static entries if the optional live-product read is unavailable
 - Canonical SEO host is documented as `https://www.ai-bid.lol`; robots/sitemap and page metadata fallbacks now use the same host
 - Firestore security rules and composite indexes
@@ -55,6 +56,8 @@
 - Production smoke never creates a real payment or mutates production click/payment state
 - Production smoke explicitly verifies `robots.txt` declares the canonical `https://www.ai-bid.lol/sitemap.xml` and does not expose deferred Games surfaces
 - Production API responses now emit `X-Robots-Tag: noindex, nofollow` through the Next.js header configuration, and production smoke asserts that boundary
+- Production smoke asserts the rendered `/submit` surface contains AI categories and no Games/Open Source/Music options
+- Production smoke asserts the `/report` moderation surface is `noindex, nofollow`
 - ESLint is pinned to the ESLint 9 major so the Next.js 16 ESLint configuration's React rules remain compatible with the lint rule API
 - Vercel Web Analytics is installed globally through the Next.js root layout
 - 404 responses have an explicit `noindex,nofollow` boundary rather than inheriting a root index directive
@@ -83,10 +86,11 @@ The shared marketplace primitives remain reusable so a future market can be adde
 
 ## Current production verification
 
-- **2026-09-10 18:59 IST:** latest `main` commit is `537861f9c3bee4fe8e52dc917c7c10563c61dbb9` (`test: verify API noindex boundaries`). The preceding implementation commit `bedb313d2d7524093bfa32fed322358f013b2f6d` adds `X-Robots-Tag: noindex, nofollow` to all `/api/:path*` responses through Next.js headers, and this commit adds a production-smoke assertion for that boundary. Vercel status for the latest commit is currently `pending`; no typecheck, lint, build, or production-smoke result is claimed yet.
+- **2026-09-10 20:30 IST:** latest `main` implementation state is `2f673b5ed4ae80c5e5fe26755b5544e6fa2eb3fd` (`test: enforce noindex private report surface`), with a preceding `d7ae98b0b198a8f9d58f837877820e524ecd7dd2` implementation commit adding `noindex,nofollow` metadata to `/report`. The smoke suite now exercises `/report` and asserts the private moderation surface remains outside search indexing. No typecheck, lint, build, or production-smoke result is claimed for these new commits until GitHub reports them.
+- **2026-09-10 18:59 IST:** `537861f9c3bee4fe8e52dc917c7c10563c61dbb9` (`test: verify API noindex boundaries`) added the production-smoke assertion for API `X-Robots-Tag: noindex, nofollow`, following the `bedb313d2d7524093bfa32fed322358f013b2f6d` implementation that adds the response header.
 - **2026-09-10 17:55 IST:** `75e59975a7cd612c550c5e16d8f77df0b74843d8` added a read-only production-smoke assertion that `/robots.txt` points to the canonical `https://www.ai-bid.lol/sitemap.xml` and contains no deferred Games surface. That implementation was subsequently recorded in status by `5c826345ec366cf2af2d07b3cd98a9fc795e0548`.
-- **2026-09-10 16:55 IST:** the recurring AI-only feature-wiring audit found the production smoke suite exercised the Games checkout boundary but did not directly inspect the rendered `/submit` surface for deferred-market options. `c2784d7f176d2c504f01d6dcb2f84619c90b3160` adds a read-only production smoke assertion that `/submit` contains expected AI category options and no Games/Open Source/Music options. No production mutation or payment is introduced.
-- **2026-09-10 15:39 IST:** the recurring SEO/feature-wiring audit found the existing production smoke suite did not actually assert canonical metadata, social metadata, or apex-to-www canonical redirect behavior despite those being launch requirements. The smoke contract was expanded in `20470a12057c5541a0416d06ce7757c7f7b456c2` to exercise those production boundaries, plus Today and live-product SEO metadata when a real product exists.
+- **2026-09-10 16:55 IST:** the recurring AI-only feature-wiring audit found the production smoke suite exercised the Games checkout boundary but did not directly inspect the rendered `/submit` surface for deferred-market options. `c2784d7f176d2c504f01d6dcb2f84619c90b3160` added that read-only production smoke assertion.
+- **2026-09-10 15:39 IST:** the recurring SEO/feature-wiring audit found the existing production smoke suite did not actually assert canonical metadata, social metadata, or apex-to-www canonical redirect behavior. `20470a12057c5541a0416d06ce7757c7f7b456c2` expanded those checks.
 - **2026-09-10 14:38 IST:** the last previously verified production deployment was `dpl_CXhU87gvsj8nY4kSVt8FLtnSeQqt`, `READY`, from `5c95eaba403b320efd748c59316de837509ff6d3`, aliased to `www.ai-bid.lol` and `ai-bid.lol`. Vercel reported no runtime error clusters in the preceding two hours at that verification point.
 - **2026-09-10 14:38 IST:** the production deployment's `/robots.txt` was fetched successfully from the protected Vercel deployment URL and returned HTTP 200 with `Sitemap: https://www.ai-bid.lol/sitemap.xml`; Vercel also added `X-Robots-Tag: noindex` to the robots resource. The deployment root and `/sitemap.xml` were protected by Vercel SSO in that execution environment, so no crawler-visible HTML or sitemap body was claimed.
 - **2026-09-10 14:38 IST:** recurring source audit rechecked `AGENTS.md`, PRD v3, PRD v3.1, implementation status, recent commits, and product-spec search results. No newer product-spec document was identified. The source tree had no remaining `section-kicker`, `transition: all`, `!important`, `box-shadow`, or monospace-style matches in the repository search used for that audit; remaining `eyebrow` usage was limited to intended hero surfaces.
