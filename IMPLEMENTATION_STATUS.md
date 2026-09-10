@@ -58,6 +58,7 @@
 - 404 responses have an explicit `noindex,nofollow` boundary rather than inheriting a root index directive
 - Malformed Dodo webhook requests missing required signature headers are rejected with HTTP 401 before verification
 - `/today` uses the established `board-label` treatment for the market label instead of an undeclared/reused `section-kicker` style
+- `/submit` uses the established `board-label` treatment for its non-hero section labels instead of reusing the hero-only `eyebrow` style
 
 ## Launch scope and roadmap
 
@@ -80,6 +81,9 @@ The shared marketplace primitives remain reusable so a future market can be adde
 
 ## Current production verification
 
+- **2026-09-10 11:08 IST:** latest `main` implementation commit is `6d8c22be7b419ea58cfba4201024fd15038c828e` (`fix: use board labels outside hero on submit`). The change replaces the two non-hero `eyebrow` uses on `/submit` with the established `board-label` treatment; no CSS, dependency, route, or payment behavior changed.
+- **2026-09-10 11:08 IST:** Vercel production deployment `dpl_Bhfyi4giAGyFMM5zabet7i8jUSXC` is building from `6d8c22be7b419ea58cfba4201024fd15038c828e`. The observed build has cloned `main`, installed dependencies, compiled successfully, completed TypeScript successfully, and reached static-page generation. No final READY state is claimed yet.
+- **2026-09-10 11:08 IST:** GitHub combined status and commit workflow lookup returned no workflow checks for `6d8c22be7b419ea58cfba4201024fd15038c828e`; no CI result is fabricated beyond the live Vercel build output above.
 - **2026-09-10 08:19 IST:** latest `main` commit is `db7dbd0ffdc7981d7381b06e5c33ae407841e71f` (`docs: record latest main and production deployment state`). The preceding implementation commit `b4c32c5d4dcf5c2e9d3c08b800d0bce671284f87` hardens malformed Dodo webhook rejection before signature verification. The latest `main` commit is now deployed to Vercel production as `dpl_Ha7YgRtdyv62TKBXBDzEjBf4dp9C`, state `READY`.
 - **2026-09-10 08:19 IST:** Vercel build for `db7dbd0` completed successfully: Next.js production build compiled, TypeScript completed successfully, 31 static pages were generated, and deployment completed. GitHub Production smoke run `162` for `db7dbd0` completed successfully.
 - **2026-09-10 08:19 IST:** production runtime status aggregation for the preceding two hours on the latest deployment showed 200, 404, 400, and 401 responses, with no 5xx response group observed. This verifies only the visible Vercel runtime window, not payment success or complete application health.
@@ -112,6 +116,7 @@ The server never trusts a client-side success redirect. A product becomes live a
 - **2026-09-09 23:24 IST:** recurring SEO audit confirmed the canonical-host implementation is internally consistent in source: `robots.ts`, `sitemap.ts`, root `metadataBase`, category metadata, product metadata, and `.env.example` all use `https://www.ai-bid.lol`. The source tree contains no active Games/Open Source/Music category route or submission market selector, and the existing production smoke contract covers Games exclusion. Live crawler fetch remains unverified from this environment as noted above.
 - **2026-09-10 09:57 IST:** recurring feature-wiring/design audit found `/today` was using an undeclared `section-kicker` class even though `AGENTS.md` explicitly prohibits adding/reusing that kicker treatment outside the hero. Replaced the class with the existing `board-label` treatment; no new CSS or dependency was introduced.
 - **2026-09-10 10:01 IST:** the `/today` design-system fix commit `1abc99e28df1320000270bede125f7b191f10bbc` built successfully through Vercel production output generation; the resulting deployment is now READY and serves the updated `board-label` treatment. No direct GitHub Actions workflow run was returned for this commit, so no CI result is claimed beyond the Vercel build output.
+- **2026-09-10 11:08 IST:** recurring feature-wiring/design audit found `/submit` was reusing the hero-only `eyebrow` style for both “List your AI product” and “How it works”. Replaced both with the established `board-label` treatment in commit `6d8c22be7b419ea58cfba4201024fd15038c828e`. The corresponding Vercel production deployment is currently BUILDING; its observed build has compiled successfully and completed TypeScript before static-page generation. Final deployment readiness is not yet claimed.
 
 ## Measurement and privacy safety
 
