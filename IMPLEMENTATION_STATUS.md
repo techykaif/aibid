@@ -79,6 +79,7 @@
 - Production smoke SEO parsing now tolerates valid HTML attribute ordering for canonical links and metadata while still requiring the expected canonical URLs and non-empty metadata; this only hardens test diagnostics and does not relax any production assertion
 - Production smoke now independently verifies `/games`, `/category/games`, and `/category/games-action` remain `404` + `noindex`, in addition to the existing sitemap/submission/checkout future-market boundaries
 - SEO-boundary smoke now checks all rendered `robots` meta tags for the required `noindex,nofollow` directive rather than assuming the first robots tag is authoritative; Next.js can emit an additional `noindex` robots tag on 404 responses before the explicit `noindex,nofollow` metadata. This preserves the production assertion and prevents a false-negative smoke failure
+- `/api/stats` now returns an explicit HTTP 503 error when Firebase is not configured instead of returning cacheable zero-valued stats that could be mistaken for real market activity
 
 ## Launch scope and roadmap
 
@@ -115,10 +116,13 @@ The shared marketplace primitives remain reusable so a future market can be adde
 - **2026-09-11 15:52 IST:** no fresh local typecheck/lint/build or new deployed runtime result is claimed for the new commits. The last verified combined status remains Vercel `success` for `73cce430bbaedddba477a296c4c4e1d1a4a39e4e`; this run does not treat that older deployment as proof of the new code.
 - **2026-09-11 15:52 IST:** recurring payment-boundary audit found that the existing-product Dodo bid endpoint accepted any `live` product and the webhook reconciler only checked product status, so a manually present future-market product could potentially receive a confirmed bid if an intent existed. The smallest safe fix now requires `market === "ai"` both before creating a bid checkout and again inside the verified-webhook transaction before any bid/stats write. No payment was executed or fabricated.
 - **2026-09-11 15:52 IST:** the current `main` commit is `8228eb894efde51d70bd632244501ec46ed81f0c`, with `IMPLEMENTATION_STATUS.md` updated afterward. Its combined GitHub status is currently Vercel `failure` with the target indicating a build-rate-limit/Pro-upgrade condition; no GitHub Actions workflow run is exposed for the commit. Therefore this run does not claim fresh typecheck, lint, build, smoke, or deployed-runtime success.
+- **2026-09-11 16:58 IST:** recurring privacy/measurement audit found that `/api/stats` returned cacheable zero-valued stats when Firebase was not configured, which could mask a configuration failure as genuine zero market activity. The smallest safe fix changes that branch to HTTP 503 with an explicit unavailable error and `no-store`; configured Firebase behavior and real stats aggregation are unchanged. No production Firebase state or market statistics were fabricated.
+- **2026-09-11 16:58 IST:** implementation change committed on `main` as `b176b20ff4710a1c55531969b597f12a6ccdc84d`. The inspected diff changes only `app/api/stats/route.ts`. The subsequent status-document update is the next commit; no Firestore rules, payment trust boundaries, credentials, or production data were changed.
+- **2026-09-11 16:58 IST:** current `main` Vercel status for the implementation commit reports the existing build-rate-limit/Pro-upgrade failure condition; no GitHub Actions workflow run is exposed. Therefore no fresh typecheck, lint, build, smoke, Firebase, payment, or deployed-runtime success is claimed for the new change.
 
 ## Measurement and privacy safety
 
-Public product responses use explicit allowlists and do not expose submitter email. Homepage stats read only public aggregate fields from `stats/global`. Unavailable configuration shows honest zero/configuration/error states rather than invented market activity.
+Public product responses use explicit allowlists and do not expose submitter email. Homepage stats read only public aggregate fields from `stats/global`. Unavailable configuration now returns an explicit stats-unavailable error from `/api/stats` rather than cacheable zero-valued market statistics; this prevents configuration failure from being presented as real activity.
 
 ## Moderation safety
 
