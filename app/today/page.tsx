@@ -35,7 +35,7 @@ async function getTodayProducts() {
     const stats = await db.collection("dailyStats").doc(date).collection("entries").orderBy("totalBidTodayUSD", "desc").limit(50).get();
     const rows = await Promise.all(stats.docs.map(async (d) => {
       const p = await db.collection("products").doc(d.id).get();
-      return p.exists && p.data()?.status === "live"
+      return p.exists && p.data()?.status === "live" && p.data()?.market === "ai"
         ? { id: p.id, ...p.data(), totalBidUSD: d.data().totalBidTodayUSD, bidCount: d.data().bidCountToday } as Product
         : null;
     }));
