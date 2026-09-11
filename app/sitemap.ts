@@ -23,10 +23,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(5000)
       .get();
 
-    entries.push(...products.docs.map((doc) => ({
-      url: `${SITE_URL}/product/${encodeURIComponent(doc.id)}`,
-      lastModified: doc.data().lastBidAt?.toDate?.() || doc.data().createdAt?.toDate?.() || undefined,
-    })));
+    entries.push(...products.docs
+      .filter((doc) => doc.data().market === "ai")
+      .map((doc) => ({
+        url: `${SITE_URL}/product/${encodeURIComponent(doc.id)}`,
+        lastModified: doc.data().lastBidAt?.toDate?.() || doc.data().createdAt?.toDate?.() || undefined,
+      })));
   } catch {
     // Keep the canonical static sitemap available if the optional live-product read is unavailable.
   }
