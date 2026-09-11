@@ -39,6 +39,10 @@ export async function GET(request: Request) {
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || 50), 1), 100);
   const validCategory = category && CATEGORIES.some((item) => item.slug === category) ? category : null;
 
+  if (category && !validCategory) {
+    return NextResponse.json([]);
+  }
+
   const snapshot = validCategory
     ? await db.collection("products").where("category", "==", validCategory).limit(1000).get()
     : await db.collection("products").where("status", "==", "live").limit(1000).get();
