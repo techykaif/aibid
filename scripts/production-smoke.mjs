@@ -128,18 +128,24 @@ if (!/^https:\/\/www\.ai-bid\.lol(?:\/|$)/i.test(apexLocation)) {
 }
 console.log(`PASS canonical host redirect: HTTP ${apexHost.status} -> ${apexLocation}`);
 
-const gamesCategory = await fetch(new URL("/category/games-action", baseUrl), {
-  redirect: "manual",
-  headers,
-});
-if (gamesCategory.status !== 404) {
-  throw new Error(`deferred Games category returned HTTP ${gamesCategory.status}, expected 404`);
+for (const [name, path] of [
+  ["deferred Games route", "/games"],
+  ["deferred Games category", "/category/games"],
+  ["deferred Games action category", "/category/games-action"],
+]) {
+  const response = await fetch(new URL(path, baseUrl), {
+    redirect: "manual",
+    headers,
+  });
+  if (response.status !== 404) {
+    throw new Error(`${name} returned HTTP ${response.status}, expected 404`);
+  }
+  const body = await response.text();
+  if (!body.toLowerCase().includes("noindex")) {
+    throw new Error(`${name} did not retain noindex protection`);
+  }
+  console.log(`PASS ${name}: HTTP 404 + noindex`);
 }
-const gamesCategoryBody = await gamesCategory.text();
-if (!gamesCategoryBody.toLowerCase().includes("noindex")) {
-  throw new Error("deferred Games category did not retain noindex protection");
-}
-console.log("PASS deferred Games category: HTTP 404 + noindex");
 
 const invalidProductId = "production-smoke-invalid-product-9f6e4d7a";
 const invalidRedirect = await fetch(new URL(`/go/${invalidProductId}`, baseUrl), {
