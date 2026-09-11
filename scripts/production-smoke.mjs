@@ -19,6 +19,25 @@ const checks = [
   ["checkout cancel", "/checkout/cancel"],
 ];
 
+function hasMeta(body, name, expectedContent) {
+  const tagPattern = /<meta\b[^>]*>/gi;
+  const namePattern = new RegExp(`(?:name|property)=[\"']${name}[\"']`, "i");
+  const contentPattern = expectedContent
+    ? new RegExp(`content=[\"']${expectedContent}[\"']`, "i")
+    : /content=[\"'][^\"']+[\"']/i;
+
+  return (body.match(tagPattern) || []).some((tag) => namePattern.test(tag) && contentPattern.test(tag));
+}
+
+function hasCanonical(body, canonical) {
+  const tagPattern = /<link\b[^>]*>/gi;
+  return (body.match(tagPattern) || []).some((tag) => {
+    const rel = /rel=[\"']([^\"']+)[\"']/i.exec(tag)?.[1] || "";
+    const href = /href=[\"']([^\"']+)[\"']/i.exec(tag)?.[1] || "";
+    return rel.split(/\s+/).some((value) => value.toLowerCase() === "canonical") && href === canonical;
+  });
+}
+
 for (const [name, path] of checks) {
   const response = await fetch(new URL(path, baseUrl), {
     redirect: "manual",
@@ -48,13 +67,13 @@ for (const [name, path] of checks) {
 
   if (path === "/" || path === "/today" || path === "/category/coding") {
     const body = await response.text();
-    if (!/<link[^>]+rel=[\"']canonical[\"'][^>]+href=[\"']https:\/\/www\.ai-bid\.lol\//i.test(body)) {
+    if (!hasCanonical(body, "https://www.ai-bid.lol")) {
       throw new Error(`${name} is missing the canonical www.ai-bid.lol link`);
     }
-    if (!/<meta[^>]+property=[\"']og:title[\"']/i.test(body)) {
+    if (!hasMeta(body, "og:title")) {
       throw new Error(`${name} is missing Open Graph title metadata`);
     }
-    if (!/<meta[^>]+name=[\"']twitter:card[\"']/i.test(body)) {
+    if (!hasMeta(body, "twitter:card")) {
       throw new Error(`${name} is missing Twitter card metadata`);
     }
   }
@@ -88,7 +107,7 @@ for (const [name, path] of checks) {
 
   if (path === "/report") {
     const body = await response.text();
-    if (!/<meta[^>]+name=[\"']robots[\"'][^>]+content=[\"']noindex, ?nofollow[\"']/i.test(body)) {
+    if (!hasMeta(body, "robots", "noindex, nofollow")) {
       throw new Error("report page is missing its noindex, nofollow boundary");
     }
   }
@@ -251,10 +270,10 @@ if (products.length > 0) {
     throw new Error(`live product page returned HTTP ${productPage.status}, expected 200`);
   }
   const productBody = await productPage.text();
-  if (!/<link[^>]+rel=[\"']canonical[\"'][^>]+href=[\"']https:\/\/www\.ai-bid\.lol\/product\//i.test(productBody)) {
+  if (!hasCanonical(productBody, `https://www.ai-bid.lol/product/${encodeURIComponent(product.id)}`)) {
     throw new Error(`live product page ${product.id} is missing its canonical URL`);
   }
-  if (!/<meta[^>]+property=[\"']og:image[\"']/i.test(productBody)) {
+  if (!hasMeta(productBody, "og:image")) {
     throw new Error(`live product page ${product.id} is missing its Open Graph image metadata`);
   }
   console.log(`PASS live product page + SEO metadata: HTTP 200 (${product.id})`);
