@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 import SiteHeader from "@/app/components/SiteHeader";
@@ -16,8 +17,11 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
   if (isFirebaseConfigured && productId) {
     try {
       const snap = await db.collection("products").doc(productId).get();
-      if (snap.exists && snap.data()?.status === "live") productName = String(snap.data()?.name || productName);
-    } catch {
+      const product = snap.data();
+      if (!snap.exists || product?.status !== "live" || product?.market !== "ai") notFound();
+      productName = String(product.name || productName);
+    } catch (error) {
+      if (error instanceof Error && error.message === "NEXT_NOT_FOUND") throw error;
       // The submit endpoint performs the authoritative product check.
     }
   }
