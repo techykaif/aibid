@@ -35,7 +35,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   let product: Product;
   try {
     const snap = await db.collection("products").doc(id).get();
-    if (!snap.exists || snap.data()?.status !== "live") notFound();
+    if (!snap.exists || snap.data()?.status !== "live" || snap.data()?.market !== "ai") notFound();
     product = publicProduct(snap.id, snap.data()!);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error && String((error as { digest?: unknown }).digest || "").startsWith("NEXT_HTTP_ERROR_FALLBACK")) {
@@ -53,7 +53,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       .limit(1000)
       .get();
     const liveRanked = ranked.docs
-      .filter((doc) => doc.data().status === "live")
+      .filter((doc) => doc.data().status === "live" && doc.data().market === "ai")
       .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
     const position = liveRanked.findIndex((d) => d.id === id);
     rank = position >= 0 ? position + 1 : undefined;
@@ -138,7 +138,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   try {
     const snap = await db.collection("products").doc(id).get();
     const data = snap.data();
-    if (!snap.exists || data?.status !== "live") {
+    if (!snap.exists || data?.status !== "live" || data?.market !== "ai") {
       return { title: "Product not found — Ai-Bid", robots: { index: false, follow: false } };
     }
 
