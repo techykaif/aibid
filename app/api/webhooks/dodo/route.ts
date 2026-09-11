@@ -140,6 +140,9 @@ export async function POST(request: Request) {
       if (!productSnap.exists) throw new Error("Product not found");
 
       const product = productSnap.data()!;
+      if (product.market !== "ai") {
+        throw new Error("Product market is not active");
+      }
       if (intentKind === "new_product" && product.status !== "pending") {
         throw new Error("Product is no longer pending");
       }
