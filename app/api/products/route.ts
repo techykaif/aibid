@@ -32,7 +32,12 @@ function toPublicProduct(id: string, data: FirebaseFirestore.DocumentData) {
 }
 
 export async function GET(request: Request) {
-  if (!isFirebaseConfigured) return NextResponse.json([]);
+  if (!isFirebaseConfigured) {
+    return NextResponse.json(
+      { error: "Products are temporarily unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
