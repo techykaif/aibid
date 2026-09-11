@@ -12,14 +12,14 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const product = snap.data();
 
   let rank: number | null = null;
-  if (snap.exists && product?.status === "live" && product?.category) {
+  if (snap.exists && product?.status === "live" && product?.market === "ai" && product?.category) {
     const board = await db
       .collection("products")
       .where("category", "==", product.category)
       .limit(1000)
       .get();
     const ranked = board.docs
-      .filter((doc) => doc.data().status === "live")
+      .filter((doc) => doc.data().status === "live" && doc.data().market === "ai")
       .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
     const index = ranked.findIndex((doc) => doc.id === id);
     rank = index >= 0 ? index + 1 : null;
