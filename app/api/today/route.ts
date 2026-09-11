@@ -44,7 +44,7 @@ export async function GET() {
     const p = await db.collection("products").doc(d.id).get();
     const data = p.data();
     const daily = d.data();
-    return p.exists && data?.status === "live"
+    return p.exists && data?.status === "live" && data?.market === "ai"
       ? toPublicTodayProduct(p.id, data, daily.totalBidTodayUSD, daily.bidCountToday)
       : null;
   }));
