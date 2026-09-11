@@ -20,11 +20,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const products = await db.collection("products")
       .where("market", "==", "ai")
-      .where("status", "==", "live")
       .limit(5000)
       .get();
 
     entries.push(...products.docs
+      .filter((doc) => doc.data().status === "live")
       .map((doc) => ({
         url: `${SITE_URL}/product/${encodeURIComponent(doc.id)}`,
         lastModified: doc.data().lastBidAt?.toDate?.() || doc.data().createdAt?.toDate?.() || undefined,
