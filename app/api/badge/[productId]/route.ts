@@ -12,7 +12,7 @@ export async function GET(
   if (!snap.exists) return new Response("not found", { status: 404 });
 
   const p = snap.data()!;
-  if (p.status !== "live") return new Response("not found", { status: 404 });
+  if (p.status !== "live" || p.market !== "ai") return new Response("not found", { status: 404 });
 
   const total = Number(p.totalBidUSD || 0);
   const products = await db
@@ -20,7 +20,9 @@ export async function GET(
     .where("status", "==", "live")
     .limit(1000)
     .get();
-  const ranked = products.docs.sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
+  const ranked = products.docs
+    .filter((doc) => doc.data().market === "ai")
+    .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0));
   const rank = ranked.findIndex((doc) => doc.id === productId) + 1;
   const label = `ai-bid #${rank > 0 ? rank : "?"}`;
   const text = `${p.name} · ${label}`;
