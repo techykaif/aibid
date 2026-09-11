@@ -40,9 +40,12 @@ if (notFound.status !== 404) {
 const notFoundBody = await notFound.text();
 const robotsMeta = [...notFoundBody.matchAll(/<meta\b[^>]*>/gi)]
   .map((match) => match[0])
-  .find((tag) => /\bname\s*=\s*["']robots["']/i.test(tag));
-const robotsContent = robotsMeta?.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1] || "";
-if (!/^noindex,?\s*nofollow$/i.test(robotsContent.trim())) {
+  .filter((tag) => /\bname\s*=\s*["']robots["']/i.test(tag));
+const hasNoindexNofollow = robotsMeta.some((tag) => {
+  const content = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1] || "";
+  return /^noindex,?\s*nofollow$/i.test(content.trim());
+});
+if (!hasNoindexNofollow) {
   throw new Error("404 response is missing its noindex, nofollow boundary");
 }
 console.log("PASS 404 noindex boundary: HTTP 404 + noindex,nofollow");
