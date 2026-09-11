@@ -14,7 +14,7 @@ async function getProducts(category?: string) {
       : await db.collection("products").where("status", "==", "live").limit(1000).get();
 
     return snap.docs
-      .filter((doc) => doc.data().status === "live")
+      .filter((doc) => doc.data().status === "live" && doc.data().market === "ai")
       .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0))
       .slice(0, 50)
       .map((d) => ({ id: d.id, ...d.data() } as Product));
@@ -27,7 +27,7 @@ export default async function Leaderboard({ category }: { category?: string }) {
   const products = await getProducts(category);
   return <section className="board">
     <nav className="tabs" aria-label="Filter leaderboard by category">
-      <Link className={`tab ${!category ? "active" : ""}`} href="/" aria-current={!category ? "page" : undefined}>All markets</Link>
+      <Link className={`tab ${!category ? "active" : ""}`} href="/" aria-current={!category ? "page" : undefined}>All AI</Link>
       {MARKETS.map((market) => market.categories.map((item) => <Link key={item.slug} className={`tab ${category === item.slug ? "active" : ""}`} href={`/category/${item.slug}`} aria-current={category === item.slug ? "page" : undefined}>{market.name} · {item.name}</Link>))}
     </nav>
     <div className="board-labels"><span>RANK</span><span>PRODUCT</span><span>ACTIVITY</span><span>CURRENT BID</span><span>ACTION</span></div>
