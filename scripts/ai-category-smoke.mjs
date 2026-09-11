@@ -1,5 +1,5 @@
 const baseUrl = process.env.AIBID_BASE_URL || "https://www.ai-bid.lol";
-const headers = { "user-agent": "Ai-Bid-AI-Category-Smoke/1.1" };
+const headers = { "user-agent": "Ai-Bid-AI-Category-Smoke/1.2" };
 const categories = [
   "coding",
   "writing",
@@ -10,15 +10,24 @@ const categories = [
   "other",
 ];
 
+function hasMeta(body, attributes) {
+  const tagPattern = /<meta\b[^>]*>/gi;
+  for (const tag of body.match(tagPattern) || []) {
+    if (attributes.every(([name, value]) => new RegExp(`(?:name|property)=[\"']${name}[\"']`, "i").test(tag) && new RegExp(`content=[\"'][^\"']+[\"']`, "i").test(tag))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const metadataChecks = [
-  ["title", /<title>[^<]+<\/title>/i],
-  ["description", /<meta[^>]+name=["']description["'][^>]+content=["'][^"']+["']/i],
-  ["Open Graph title", /<meta[^>]+property=["']og:title["'][^>]+content=["'][^"']+["']/i],
-  ["Open Graph description", /<meta[^>]+property=["']og:description["'][^>]+content=["'][^"']+["']/i],
-  ["Open Graph image", /<meta[^>]+property=["']og:image["'][^>]+content=["'][^"']+["']/i],
-  ["Twitter card", /<meta[^>]+name=["']twitter:card["'][^>]+content=["'][^"']+["']/i],
-  ["Twitter title", /<meta[^>]+name=["']twitter:title["'][^>]+content=["'][^"']+["']/i],
-  ["Twitter description", /<meta[^>]+name=["']twitter:description["'][^>]+content=["'][^"']+["']/i],
+  ["description", [["description", ""]]],
+  ["Open Graph title", [["og:title", ""]]],
+  ["Open Graph description", [["og:description", ""]]],
+  ["Open Graph image", [["og:image", ""]]],
+  ["Twitter card", [["twitter:card", ""]]],
+  ["Twitter title", [["twitter:title", ""]]],
+  ["Twitter description", [["twitter:description", ""]]],
 ];
 
 for (const slug of categories) {
@@ -37,8 +46,12 @@ for (const slug of categories) {
     throw new Error(`AI category ${slug} is missing canonical URL ${canonical}`);
   }
 
-  for (const [label, pattern] of metadataChecks) {
-    if (!pattern.test(body)) {
+  if (!/<title>[^<]+<\/title>/i.test(body)) {
+    throw new Error(`AI category ${slug} is missing title metadata`);
+  }
+
+  for (const [label, attributes] of metadataChecks) {
+    if (!hasMeta(body, attributes)) {
       throw new Error(`AI category ${slug} is missing ${label} metadata`);
     }
   }
