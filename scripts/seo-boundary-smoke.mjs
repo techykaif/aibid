@@ -38,7 +38,11 @@ if (notFound.status !== 404) {
   throw new Error(`invalid route returned HTTP ${notFound.status}, expected 404`);
 }
 const notFoundBody = await notFound.text();
-if (!/<meta[^>]+name=[\"']robots[\"'][^>]+content=[\"']noindex, ?nofollow[\"']/i.test(notFoundBody)) {
+const robotsMeta = [...notFoundBody.matchAll(/<meta\b[^>]*>/gi)]
+  .map((match) => match[0])
+  .find((tag) => /\bname\s*=\s*["']robots["']/i.test(tag));
+const robotsContent = robotsMeta?.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1] || "";
+if (!/^noindex,?\s*nofollow$/i.test(robotsContent.trim())) {
   throw new Error("404 response is missing its noindex, nofollow boundary");
 }
 console.log("PASS 404 noindex boundary: HTTP 404 + noindex,nofollow");
