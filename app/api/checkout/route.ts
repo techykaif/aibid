@@ -18,7 +18,15 @@ const schema = z.object({
   tagline: z.string().trim().min(1).max(100),
   description: z.string().max(500).optional().default(""),
   market: z.literal("ai").default("ai"),
-  category: z.enum(["coding", "writing", "image", "video", "agents", "productivity", "other"]),
+  category: z.enum([
+    "coding",
+    "writing",
+    "image",
+    "video",
+    "agents",
+    "productivity",
+    "other",
+  ]),
   email: z.string().email(),
   twitterHandle: z.string().max(30).optional().default(""),
   bid: z.coerce.number().min(5).max(1000000),
@@ -34,7 +42,14 @@ function containsProfanity(value: string) {
 function isPrivateOrLocalAddress(address: string) {
   if (isIP(address) === 4) {
     const [a, b] = address.split(".").map(Number);
-    return a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a === 0;
+    return (
+      a === 10 ||
+      a === 127 ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      a === 0
+    );
   }
 
   if (isIP(address) === 6) {
@@ -50,7 +65,16 @@ function isPrivateOrLocalAddress(address: string) {
       if (isPrivateOrLocalAddress(ipv4)) return true;
     }
 
-    return normalized === "::1" || normalized === "::" || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("fe8") || normalized.startsWith("fe9") || normalized.startsWith("fea") || normalized.startsWith("feb");
+    return (
+      normalized === "::1" ||
+      normalized === "::" ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd") ||
+      normalized.startsWith("fe8") ||
+      normalized.startsWith("fe9") ||
+      normalized.startsWith("fea") ||
+      normalized.startsWith("feb")
+    );
   }
 
   return false;
@@ -68,7 +92,9 @@ async function urlResolves(url: string) {
   for (let attempt = 0; attempt <= 3; attempt += 1) {
     if (current.protocol !== "http:" && current.protocol !== "https:") return false;
     if (current.username || current.password) return false;
-    if (current.hostname === "localhost" || current.hostname.endsWith(".localhost") || current.hostname.endsWith(".local")) return false;
+    if (current.hostname === "localhost" || current.hostname.endsWith(".localhost") || current.hostname.endsWith(".local")) {
+      return false;
+    }
     if (isIP(current.hostname) && isPrivateOrLocalAddress(current.hostname)) return false;
     if (!isIP(current.hostname)) {
       try {
@@ -78,7 +104,12 @@ async function urlResolves(url: string) {
       }
     }
 
-    const options = { redirect: "manual" as const, signal: AbortSignal.timeout(5000), headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" } };
+    const options = {
+      redirect: "manual" as const,
+      signal: AbortSignal.timeout(5000),
+      headers: { "User-Agent": "Ai-Bid-Submission-Check/1.0" },
+    };
+
     try {
       const head = await fetch(current, { ...options, method: "HEAD" });
       if (head.status >= 200 && head.status < 300) return true;
@@ -99,6 +130,7 @@ async function urlResolves(url: string) {
       return false;
     }
   }
+
   return false;
 }
 
@@ -125,9 +157,12 @@ export async function POST(request: Request) {
     const isMultipart = request.headers.get("content-type")?.includes("multipart/form-data");
     let inputData: Record<string, unknown>;
     let logoFile: File | null = null;
+
     if (isMultipart) {
       const form = await request.formData();
-      inputData = Object.fromEntries(["name", "url", "tagline", "description", "market", "category", "email", "twitterHandle", "bid"].map((key) => [key, form.get(key) ?? ""]));
+      inputData = Object.fromEntries(
+        ["name", "url", "tagline", "description", "market", "category", "email", "twitterHandle", "bid"].map((key) => [key, form.get(key) ?? ""]),
+      );
       const candidate = form.get("logo");
       if (candidate instanceof File && candidate.size > 0) logoFile = candidate;
     } else {
@@ -139,21 +174,42 @@ export async function POST(request: Request) {
     if (!selectedMarket) return NextResponse.json({ error: "Invalid market" }, { status: 400 });
     const selectedCategory = CATEGORIES.find((category) => category.slug === input.category);
     if (!selectedCategory) return NextResponse.json({ error: "Invalid category" }, { status: 400 });
-    if (!selectedMarket.categories.some((category) => category.slug === selectedCategory.slug)) return NextResponse.json({ error: "Category does not belong to the selected market" }, { status: 400 });
-    if (containsProfanity(`${input.name} ${input.tagline}`)) return NextResponse.json({ error: "Please remove inappropriate language from the product name or tagline." }, { status: 400 });
-    if (!(await urlResolves(input.url))) return NextResponse.json({ error: "That product URL could not be reached. Please check the URL and try again." }, { status: 400 });
+    if (!selectedMarket.categories.some((category) => category.slug === selectedCategory.slug)) {
+      return NextResponse.json({ error: "Category does not belong to the selected market" }, { status: 400 });
+    }
+    if (containsProfanity(`${input.name} ${input.tagline}`)) {
+      return NextResponse.json({ error: "Please remove inappropriate language from the product name or tagline." }, { status: 400 });
+    }
+    if (!(await urlResolves(input.url))) {
+      return NextResponse.json({ error: "That product URL could not be reached. Please check the URL and try again." }, { status: 400 });
+    }
 
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
     const dodoProductId = process.env.DODO_PRODUCT_ID;
     if (!apiKey || !dodoProductId) return NextResponse.json({ error: "Payments are not configured" }, { status: 503 });
 
     productRef = db.collection("products").doc();
-    const productData = { ...input, totalBidUSD: 0, bidCount: 0, status: "pending", createdAt: new Date(), lastBidAt: null } as Record<string, unknown>;
+    const productData = {
+      ...input,
+      totalBidUSD: 0,
+      bidCount: 0,
+      status: "pending",
+      createdAt: new Date(),
+      lastBidAt: null,
+    } as Record<string, unknown>;
+
     await productRef.set(productData);
 
     if (logoFile) {
       const optimized = await optimizeLogo(logoFile);
-      await db.collection("productLogos").doc(productRef.id).set({ data: optimized.data, contentType: optimized.contentType, width: optimized.width, height: optimized.height, sizeBytes: optimized.sizeBytes, updatedAt: new Date() });
+      await db.collection("productLogos").doc(productRef.id).set({
+        data: optimized.data,
+        contentType: optimized.contentType,
+        width: optimized.width,
+        height: optimized.height,
+        sizeBytes: optimized.sizeBytes,
+        updatedAt: new Date(),
+      });
       logoCreated = true;
       productData.logoUrl = `/api/logo/${productRef.id}`;
       await productRef.update({ logoUrl: productData.logoUrl });
@@ -164,7 +220,14 @@ export async function POST(request: Request) {
     const response = await fetch(`${dodoBase}/checkouts`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ product_cart: [{ product_id: dodoProductId, quantity: 1, amount: Math.round(input.bid * 100) }], allowed_payment_method_types: ["credit", "debit", "upi_collect"], customer: { email: input.email }, return_url: `${base}/checkout/success?product=${productRef.id}`, cancel_url: `${base}/checkout/cancel?product=${productRef.id}`, metadata: { productId: productRef.id, kind: "new_product", bidUSD: input.bid.toFixed(2), market: input.market } }),
+      body: JSON.stringify({
+        product_cart: [{ product_id: dodoProductId, quantity: 1, amount: Math.round(input.bid * 100) }],
+        allowed_payment_method_types: ["credit", "debit", "upi_collect"],
+        customer: { email: input.email },
+        return_url: `${base}/checkout/success?product=${productRef.id}`,
+        cancel_url: `${base}/checkout/cancel?product=${productRef.id}`,
+        metadata: { productId: productRef.id, kind: "new_product", bidUSD: input.bid.toFixed(2), market: input.market },
+      }),
     });
 
     const session = await response.json();
@@ -176,7 +239,14 @@ export async function POST(request: Request) {
     }
     checkoutSessionCreated = true;
 
-    await persistCheckoutIntent(sessionId, { productId: productRef.id, kind: "new_product", amountUSD: input.bid, dodoProductId, createdAt: new Date() });
+    await persistCheckoutIntent(sessionId, {
+      productId: productRef.id,
+      kind: "new_product",
+      amountUSD: input.bid,
+      dodoProductId,
+      createdAt: new Date(),
+    });
+
     return NextResponse.json({ checkout_url: session.checkout_url });
   } catch (error) {
     if (productRef && !checkoutSessionCreated) {
@@ -187,6 +257,9 @@ export async function POST(request: Request) {
       console.error("Dodo checkout was created but its checkout intent could not be persisted", error);
       return NextResponse.json({ error: "Checkout was created but could not be finalized. Please retry shortly." }, { status: 503 });
     }
-    return NextResponse.json({ error: error instanceof z.ZodError ? "Please check the form fields." : "Could not create checkout." }, { status: 400 });
+    return NextResponse.json(
+      { error: error instanceof z.ZodError ? "Please check the form fields." : "Could not create checkout." },
+      { status: 400 },
+    );
   }
 }
