@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const input = schema.parse(await request.json());
     const product = await db.collection("products").doc(id).get();
-    if (!product.exists || product.data()?.status !== "live") {
+    if (!product.exists || product.data()?.status !== "live" || product.data()?.market !== "ai") {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
