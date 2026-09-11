@@ -80,6 +80,7 @@
 - Production smoke now independently verifies `/games`, `/category/games`, and `/category/games-action` remain `404` + `noindex`, in addition to the existing sitemap/submission/checkout future-market boundaries
 - SEO-boundary smoke now checks all rendered `robots` meta tags for the required `noindex,nofollow` directive rather than assuming the first robots tag is authoritative; Next.js can emit an additional `noindex` robots tag on 404 responses before the explicit `noindex,nofollow` metadata. This preserves the production assertion and prevents a false-negative smoke failure
 - `/api/stats` now returns an explicit HTTP 503 error when Firebase is not configured instead of returning cacheable zero-valued stats that could be mistaken for real market activity
+- Public moderation report creation now requires `status === "live" && market === "ai"`, preventing future-market products from entering the active reporting/moderation surface through direct API calls
 
 ## Launch scope and roadmap
 
@@ -119,6 +120,10 @@ The shared marketplace primitives remain reusable so a future market can be adde
 - **2026-09-11 16:58 IST:** recurring privacy/measurement audit found that `/api/stats` returned cacheable zero-valued stats when Firebase was not configured, which could mask a configuration failure as genuine zero market activity. The smallest safe fix changes that branch to HTTP 503 with an explicit unavailable error and `no-store`; configured Firebase behavior and real stats aggregation are unchanged. No production Firebase state or market statistics were fabricated.
 - **2026-09-11 16:58 IST:** implementation change committed on `main` as `b176b20ff4710a1c55531969b597f12a6ccdc84d`. The inspected diff changes only `app/api/stats/route.ts`. The subsequent status-document update is the next commit; no Firestore rules, payment trust boundaries, credentials, or production data were changed.
 - **2026-09-11 16:58 IST:** current `main` Vercel status for the implementation commit reports the existing build-rate-limit/Pro-upgrade failure condition; no GitHub Actions workflow run is exposed. Therefore no fresh typecheck, lint, build, smoke, Firebase, payment, or deployed-runtime success is claimed for the new change.
+- **2026-09-11 22:01 IST:** latest `main` before this implementation change was `ea678263874cbf49994c7578a04ad899f70959e4`; its combined GitHub status reports Vercel `success`, and no GitHub Actions workflow run is exposed for this commit. The commit contains the IPv4-mapped IPv6 SSRF hardening plus formatting cleanup in `app/api/checkout/route.ts`. This run verified the production deployment status but does not claim fresh typecheck, lint, build, smoke, Firebase, or payment results because no workflow run is exposed.
+- **2026-09-11 22:01 IST:** recurring moderation/AI-only boundary audit found that `app/api/reports/route.ts` accepted any `live` product for reporting without requiring `market === "ai"`. The smallest safe fix now requires both `status === "live"` and `market === "ai"` before creating a report. No moderation data, Firestore rules, payment trust boundaries, or future-market data were changed.
+- **2026-09-11 22:01 IST:** implementation change committed on `main` as `0035818f784afca7743e83c09db22464e352cab6`; `IMPLEMENTATION_STATUS.md` was updated immediately afterward. The inspected code diff is limited to the moderation report product guard.
+- **2026-09-11 22:01 IST:** direct production HTTP verification from this execution environment was unavailable because outbound DNS resolution failed. Therefore no live HTTP response, Firebase availability, live listing, payment success, or production health was fabricated. Source-level SEO/feature-wiring checks and GitHub deployment status remain the authoritative evidence available in this run.
 
 ## Measurement and privacy safety
 
@@ -126,4 +131,4 @@ Public product responses use explicit allowlists and do not expose submitter ema
 
 ## Moderation safety
 
-Reports are accepted only for existing live products and store a bounded reason with an open status. The moderation queue requires the server-side `ADMIN_TOKEN`; no Firestore client access is opened for moderation. Unpublish changes only the product status to `rejected`, while dismissing a report leaves the product live. Rejection and logo cleanup are performed in the same Firestore transaction to avoid leaving inaccessible orphaned logo documents.
+Reports are accepted only for existing live AI products and store a bounded reason with an open status. The moderation queue requires the server-side `ADMIN_TOKEN`; no Firestore client access is opened for moderation. Unpublish changes only the product status to `rejected`, while dismissing a report leaves the product live. Rejection and logo cleanup are performed in the same Firestore transaction to avoid leaving inaccessible orphaned logo documents.
