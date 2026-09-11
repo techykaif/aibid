@@ -21,7 +21,8 @@ export async function POST(request: Request) {
     })));
 
     const product = await db.collection("products").doc(input.productId).get();
-    if (!product.exists || product.data()?.status !== "live") {
+    const productData = product.data();
+    if (!product.exists || productData?.status !== "live" || productData?.market !== "ai") {
       return NextResponse.json({ error: "That product is no longer available for reporting." }, { status: 404 });
     }
 
