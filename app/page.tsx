@@ -29,8 +29,6 @@ export const metadata: Metadata = {
 
 export const revalidate = 15;
 
-const EMPTY_STATS = { totalRevenueUSD: 0, totalProducts: 0, totalBids: 0 };
-
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -49,7 +47,7 @@ const websiteSchema = {
 };
 
 async function getMarketStats() {
-  if (!isFirebaseConfigured) return EMPTY_STATS;
+  if (!isFirebaseConfigured) return null;
 
   try {
     const snapshot = await db.collection("stats").doc("global").get();
@@ -60,7 +58,7 @@ async function getMarketStats() {
       totalBids: Number(data.totalBids || 0),
     };
   } catch {
-    return EMPTY_STATS;
+    return null;
   }
 }
 
@@ -86,11 +84,7 @@ export default async function Home() {
 
     <section className="ticker" aria-label="Ai-Bid market statistics">
       <b>MARKET STATS</b><span className="ticker-sep">/</span>
-      <span>{moneyFormatter.format(stats.totalRevenueUSD)} bid volume</span>
-      <span className="ticker-sep">/</span>
-      <span>{numberFormatter.format(stats.totalProducts)} products</span>
-      <span className="ticker-sep">/</span>
-      <span>{numberFormatter.format(stats.totalBids)} confirmed bids</span>
+      {stats ? <><span>{moneyFormatter.format(stats.totalRevenueUSD)} bid volume</span><span className="ticker-sep">/</span><span>{numberFormatter.format(stats.totalProducts)} products</span><span className="ticker-sep">/</span><span>{numberFormatter.format(stats.totalBids)} confirmed bids</span></> : <span>Temporarily unavailable</span>}
       <span className="ticker-right">15s refresh</span>
     </section>
 
