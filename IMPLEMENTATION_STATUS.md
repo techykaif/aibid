@@ -43,7 +43,7 @@
 - Today page emits explicit canonical, index/follow, Open Graph, and Twitter metadata
 - Submission page is explicitly excluded from search indexing while remaining followable
 - Report page is explicitly excluded from search indexing while remaining reachable for moderation/report workflows
-- Sitemap includes live product URLs from Firestore, while retaining the static AI category/submit entries and failing safely to those static entries if the optional live-product read is unavailable
+- Sitemap includes live AI product URLs from Firestore, while retaining the static AI category/submit entries and failing safely to those static entries if the optional live-product read is unavailable
 - Canonical SEO host is documented as `https://www.ai-bid.lol`; robots/sitemap and page metadata fallbacks now use the same host
 - Firestore security rules and composite indexes
 - Environment variable template
@@ -101,10 +101,11 @@ The shared marketplace primitives remain reusable so a future market can be adde
 - **2026-09-11 13:08 IST:** concrete launch hardening added on `main`: `/api/products?category=<unknown-or-future-market>` now returns an empty public result instead of treating the unknown filter as absent and returning the entire live AI market. This closes an invalid-category/future-market API boundary and does not change valid AI category queries or payment trust boundaries.
 - **2026-09-11 13:08 IST:** the previous production smoke evidence remains the latest available completed runtime evidence; no fresh Actions workflow run for the new commit is currently exposed. Therefore this run does not claim new typecheck, lint, build, smoke, Firebase, or payment results.
 - **2026-09-11 13:08 IST:** no live Dodo test payment, Firebase production mutation, live product creation, click-state mutation, or logo upload/read verification was performed or fabricated.
+- **2026-09-11 14:46 IST:** recurring sitemap/SEO source audit found that `app/sitemap.ts` queried all `live` products without enforcing `market === "ai"`, which could expose a future-market product URL in the indexable sitemap if such a document existed. The smallest safe fix filters the already-bounded live-product snapshot to `market === "ai"` before emitting product URLs. No future-market data was added.
 
 ## Measurement and privacy safety
 
-Public product responses use explicit allowlists and do not expose submitter email. Homepage stats read only public aggregate fields from `stats/global`. Unavailable configuration shows honest zero/configuration states rather than invented market activity.
+Public product responses use explicit allowlists and do not expose submitter email. Homepage stats read only public aggregate fields from `stats/global`. Unavailable configuration shows honest zero/configuration/error states rather than invented market activity.
 
 ## Moderation safety
 
