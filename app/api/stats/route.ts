@@ -3,12 +3,11 @@ import { db, isFirebaseConfigured } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
-const EMPTY_STATS = { totalRevenueUSD: 0, totalProducts: 0, totalBids: 0 };
-
 export async function GET() {
   if (!isFirebaseConfigured) {
-    return NextResponse.json(EMPTY_STATS, {
-      headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60" },
+    return NextResponse.json({ error: "Stats are temporarily unavailable" }, {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
     });
   }
 
