@@ -15,14 +15,17 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
   let productName = "this listing";
 
   if (isFirebaseConfigured && productId) {
+    let snap;
     try {
-      const snap = await db.collection("products").doc(productId).get();
+      snap = await db.collection("products").doc(productId).get();
+    } catch {
+      // The submit endpoint performs the authoritative product check.
+    }
+
+    if (snap) {
       const product = snap.data();
       if (!snap.exists || product?.status !== "live" || product?.market !== "ai") notFound();
-      productName = String(product.name || productName);
-    } catch (error) {
-      if (error instanceof Error && error.message === "NEXT_NOT_FOUND") throw error;
-      // The submit endpoint performs the authoritative product check.
+      productName = String(product?.name || productName);
     }
   }
 
