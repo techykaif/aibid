@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     : await db.collection("products").where("status", "==", "live").limit(1000).get();
 
   const products = snapshot.docs
-    .filter((doc) => doc.data().status === "live")
+    .filter((doc) => doc.data().status === "live" && doc.data().market === "ai")
     .sort((a, b) => Number(b.data().totalBidUSD || 0) - Number(a.data().totalBidUSD || 0))
     .slice(0, limit)
     .map((doc) => toPublicProduct(doc.id, doc.data()));
