@@ -36,6 +36,8 @@
 - Product detail pages now require `status === "live" && market === "ai"`; their rank calculation also excludes non-AI products
 - Product OG images and badges now reject non-AI products and calculate rank only within live AI products
 - Server-rendered all-time/category leaderboards and the Today page now filter public projections to the AI market; the all-time tab is explicitly labeled `All AI`
+- Existing-product Dodo bid checkout now requires the target product to be live in the AI market
+- Verified Dodo webhook reconciliation now rejects any product whose market is not the active AI market before writing a confirmed bid or stats
 - Tracked outbound product redirects at `/go/[productId]` with atomic click counts and HTTP(S)-only destination validation
 - Public global market stats API and transactional stats rollup
 - Homepage market stats strip backed by `stats/global`
@@ -111,6 +113,8 @@ The shared marketplace primitives remain reusable so a future market can be adde
 - **2026-09-11 15:52 IST:** recurring AI-only public-surface audit found that server-rendered product pages, product OG images, badges, the all-time/category leaderboard, and the Today page still accepted or ranked `status === "live"` documents without requiring `market === "ai"`. This could expose a future-market document through a direct product URL or rank it into the active AI surface if such a document existed. The smallest safe fix adds the AI-market guard to those public projections and changes the all-time tab label from `All markets` to `All AI`; no future-market data was added.
 - **2026-09-11 15:52 IST:** implementation changes are committed on `main` across `app/product/[id]/page.tsx`, `app/product/[id]/opengraph-image.tsx`, `app/api/badge/[productId]/route.ts`, `app/components/Leaderboard.tsx`, and `app/today/page.tsx`. The inspected aggregate diff from the previous verified `main` contains only these five files, with 12 additions and 12 deletions. No Firestore rules, indexes, payment trust boundaries, credentials, or production data were changed.
 - **2026-09-11 15:52 IST:** no fresh local typecheck/lint/build or new deployed runtime result is claimed for the new commits. The last verified combined status remains Vercel `success` for `73cce430bbaedddba477a296c4c4e1d1a4a39e4e`; this run does not treat that older deployment as proof of the new code.
+- **2026-09-11 15:52 IST:** recurring payment-boundary audit found that the existing-product Dodo bid endpoint accepted any `live` product and the webhook reconciler only checked product status, so a manually present future-market product could potentially receive a confirmed bid if an intent existed. The smallest safe fix now requires `market === "ai"` both before creating a bid checkout and again inside the verified-webhook transaction before any bid/stats write. No payment was executed or fabricated.
+- **2026-09-11 15:52 IST:** the current `main` commit is `8228eb894efde51d70bd632244501ec46ed81f0c`, with `IMPLEMENTATION_STATUS.md` updated afterward. Its combined GitHub status is currently Vercel `failure` with the target indicating a build-rate-limit/Pro-upgrade condition; no GitHub Actions workflow run is exposed for the commit. Therefore this run does not claim fresh typecheck, lint, build, smoke, or deployed-runtime success.
 
 ## Measurement and privacy safety
 
