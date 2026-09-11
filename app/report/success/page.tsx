@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteHeader from "@/app/components/SiteHeader";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function ReportSuccessPage() {
   return (
