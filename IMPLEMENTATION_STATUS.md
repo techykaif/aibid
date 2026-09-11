@@ -33,6 +33,9 @@
 - Public products/leaderboard/product/rank reads remain functional without depending on unavailable composite ranking indexes by using bounded equality-only reads with deterministic server-side sorting
 - Public product projection only exposes live AI-market products; unknown product category filters now return an empty result instead of falling back to the entire live AI market
 - Daily leaderboard public projection now also requires `status === "live" && market === "ai"`, preventing future-market documents referenced by daily stats from entering the active public Today surface
+- Product detail pages now require `status === "live" && market === "ai"`; their rank calculation also excludes non-AI products
+- Product OG images and badges now reject non-AI products and calculate rank only within live AI products
+- Server-rendered all-time/category leaderboards and the Today page now filter public projections to the AI market; the all-time tab is explicitly labeled `All AI`
 - Tracked outbound product redirects at `/go/[productId]` with atomic click counts and HTTP(S)-only destination validation
 - Public global market stats API and transactional stats rollup
 - Homepage market stats strip backed by `stats/global`
@@ -105,6 +108,9 @@ The shared marketplace primitives remain reusable so a future market can be adde
 - **2026-09-11 14:46 IST:** recurring sitemap/SEO source audit found that `app/sitemap.ts` queried all `live` products without enforcing `market === "ai"`, which could expose a future-market product URL in the indexable sitemap if such a document existed. The smallest safe fix filters the already-bounded live-product snapshot to `market === "ai"` before emitting product URLs. No future-market data was added.
 - **2026-09-11 15:44 IST:** recurring feature-wiring/security audit found that `/api/today` only checked `status === "live"` after resolving daily-stat entries, so a future-market product referenced by `dailyStats` could enter the public Today projection. The smallest safe fix additionally requires `market === "ai"`. No Firestore rules, indexes, payment trust boundaries, or production data were changed.
 - **2026-09-11 15:44 IST:** the new runtime change is committed as `6e27fd7c713362a3db17a5360af90184e22c4449`. The inspected diff contains only the one-line Today public-projection guard. No fresh CI workflow result is exposed for this commit, so this run does not claim new typecheck, lint, build, smoke, Firebase, or payment results.
+- **2026-09-11 15:52 IST:** recurring AI-only public-surface audit found that server-rendered product pages, product OG images, badges, the all-time/category leaderboard, and the Today page still accepted or ranked `status === "live"` documents without requiring `market === "ai"`. This could expose a future-market document through a direct product URL or rank it into the active AI surface if such a document existed. The smallest safe fix adds the AI-market guard to those public projections and changes the all-time tab label from `All markets` to `All AI`; no future-market data was added.
+- **2026-09-11 15:52 IST:** implementation changes are committed on `main` across `app/product/[id]/page.tsx`, `app/product/[id]/opengraph-image.tsx`, `app/api/badge/[productId]/route.ts`, `app/components/Leaderboard.tsx`, and `app/today/page.tsx`. The inspected aggregate diff from the previous verified `main` contains only these five files, with 12 additions and 12 deletions. No Firestore rules, indexes, payment trust boundaries, credentials, or production data were changed.
+- **2026-09-11 15:52 IST:** no fresh local typecheck/lint/build or new deployed runtime result is claimed for the new commits. The last verified combined status remains Vercel `success` for `73cce430bbaedddba477a296c4c4e1d1a4a39e4e`; this run does not treat that older deployment as proof of the new code.
 
 ## Measurement and privacy safety
 
