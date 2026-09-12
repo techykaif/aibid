@@ -51,7 +51,7 @@ function normalizeProductUrl(value: string) {
   if ((url.protocol === "http:" && url.port === "80") || (url.protocol === "https:" && url.port === "443")) {
     url.port = "";
   }
-  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\\/+$/, "");
+  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, "");
   return url.toString();
 }
 
@@ -119,7 +119,7 @@ function isPrivateOrLocalAddress(address: string) {
 
   if (isIP(address) === 6) {
     const normalized = address.toLowerCase();
-    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\\d{1,3}(?:\\.\\d{1,3}){3})$/)?.[1];
+    const mappedIpv4 = normalized.match(/^::(?:ffff:)?(\d{1,3}(?:\.\d{1,3}){3})$/)?.[1];
     if (mappedIpv4 && isPrivateOrLocalAddress(mappedIpv4)) return true;
 
     const mappedIpv4Hex = normalized.match(/^::(?:ffff:)?([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
