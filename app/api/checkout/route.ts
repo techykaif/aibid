@@ -4,7 +4,7 @@ import { lookup } from "node:dns/promises";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { db } from "@/lib/firebase-admin";
-import type { DocumentReference } from "firebase-admin/firestore";
+import type { DocumentReference, DocumentSnapshot } from "firebase-admin/firestore";
 import { optimizeLogo } from "@/lib/logo";
 import { CATEGORIES, MARKETS } from "@/lib/types";
 
@@ -70,8 +70,9 @@ async function assertSubmissionRateLimit(email: string, ip: string) {
   const ipRef = db.collection("submissionRateLimits").doc(`ip_${hashRateLimitKey(ip)}`);
 
   await db.runTransaction(async (tx) => {
-    const [emailSnap, ipSnap] = await Promise.all([tx.get(emailRef), tx.get(ipRef)]);
-    const readCount = (snapshot: FirebaseFirestore.DocumentSnapshot) => {
+    const emailSnap = await tx.get(emailRef);
+    const ipSnap = await tx.get(ipRef);
+    const readCount = (snapshot: DocumentSnapshot) => {
       const data = snapshot.data();
       const windowStart = data?.windowStartAt instanceof Date ? data.windowStartAt.getTime() : data?.windowStartAt?.toMillis?.();
       const count = typeof data?.count === "number" ? data.count : 0;
@@ -249,11 +250,10 @@ export async function POST(request: Request) {
     if (await hasRejectedProductUrl(normalizedUrl, input.url)) {
       return NextResponse.json({ error: "This product URL was previously rejected and cannot be resubmitted." }, { status: 409 });
     }
+    await assertSubmissionRateLimit(input.email, getRequestIp(request));
     if (!(await urlResolves(input.url))) {
       return NextResponse.json({ error: "That product URL could not be reached. Please check the URL and try again." }, { status: 400 });
     }
-
-    await assertSubmissionRateLimit(input.email, getRequestIp(request));
 
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
     const dodoProductId = process.env.DODO_PRODUCT_ID;
