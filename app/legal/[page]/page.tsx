@@ -42,7 +42,7 @@ const pages = {
     intro: "How the market works, in plain language.",
     sections: [
       ["How does ranking work?", "A product's position is driven by its confirmed cumulative bid total. More confirmed bid volume means a higher rank within its category."],
-      ["How much does it cost to list?", "A new product requires a minimum $5 starting bid. There is no free listing tier in the MVP."],
+      ["How much does it cost to list?", "A new product requires a minimum $1 starting bid. There is no free listing tier in the MVP."],
       ["How much can I bid on an existing product?", "Existing products accept bids starting at $1. Each confirmed bid is added to that product's cumulative total."],
       ["Are bids refundable?", "No. Bids are one-time and non-refundable. The checkout flow should make this clear before payment."],
       ["What does the click count mean?", "Product outbound links pass through Ai-Bid so we can count visits delivered from the market. The running click count is displayed publicly as an ROI signal."],
