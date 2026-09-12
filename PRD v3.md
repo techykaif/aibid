@@ -42,12 +42,12 @@ Future markets must reuse the same core primitives — submission, paid ranking,
 
 ## 3. Target Users
 
-- **Bidders/submitters:** AI tool builders spending $5–$50+ on visibility
+- **Bidders/submitters:** AI tool builders spending $1–$50+ on visibility
 - **Visitors:** people browsing a specific AI category, plus spectacle-driven X/Twitter traffic
 
 ## 4. Core Mechanic
 
-- Listing a new product requires a minimum **$5** bid as part of the same checkout — no free tier
+- Listing a new product requires a minimum **$1** bid as part of the same checkout — no free tier
 - Rank = **cumulative total bid amount** per product, not a single largest bid
 - Minimum increment to raise an existing product's total: **$1**
 - **USD only.** No FX normalization — simpler, avoids ranking disputes across currencies
@@ -60,7 +60,7 @@ Fields: name, URL, tagline, description (optional), AI category, X/Twitter handl
 - **Logo upload ✅ in code; deployed upload/read verification completed** — see PRD v3.1 for the authoritative Firestore logo architecture. Firebase Storage is not a launch dependency.
 
 ### 5.2 Bidding ✅
-- New product: submission form doubles as first bid (min $5)
+- New product: submission form doubles as first bid (min $1)
 - Existing product: "Bid" button → amount input (min $1) → Dodo checkout
 - Anonymous bidding allowed — `bidderName`/`bidderTwitter` optional, unset bids show as "Anonymous"
 
@@ -88,7 +88,7 @@ Fields: name, URL, tagline, description (optional), AI category, X/Twitter handl
 - Report link on product pages — implemented; verify end-to-end before final launch acceptance
 
 ### 5.9 Moderation & Anti-Spam
-- Paid $5+ floor is the primary spam control ✅
+- Paid $1+ floor is the primary spam control ✅
 - New products go live immediately on payment confirmation ✅
 - Automated URL-resolves + profanity-filter check on submission — wired in code; verify deployed behavior before final launch
 - Report link + admin review/unpublish tooling — implemented; verify end-to-end before final launch acceptance
@@ -117,12 +117,12 @@ Games, Open Source, Music, and other future markets have **no live categories at
 | Field | Type | Notes |
 |---|---|---|
 | name, url, tagline, description, category, market, twitterHandle | string | as submitted |
-| logoUrl | string \| null | points to `/api/logo/{productId}` when a verified logo is present |
+| logoUrl | string \\| null | points to `/api/logo/{productId}` when a verified logo is present |
 | email | string | **private — never in any public response, see Section 9** |
 | totalBidUSD | number | drives ranking |
 | bidCount | number | |
 | clicks | number | incremented by `/go/[productId]` |
-| status | enum | `pending` \| `live` \| `rejected` |
+| status | enum | `pending` \\| `live` \\| `rejected` |
 | createdAt, lastBidAt | timestamp | |
 
 ## 8. Payment Flow (Dodo Payments) ✅
@@ -173,7 +173,7 @@ Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat th
 
 1. Verify production Dodo product configuration, webhook endpoint/signing secret, Adaptive Currency setting, and payment behavior without exposing credentials.
 2. Run integration/e2e coverage against Dodo test mode + Firebase emulator, including duplicate/retry/failure paths.
-3. Complete the AI launch end-to-end journeys and runtime audit.
+3. Complete the AI launch end-to-end journeys and deployed runtime audit.
 4. Verify the full AI launch acceptance across submission, payment, ranking, product pages, sharing, stats, click tracking, moderation, SEO, mobile, and themes.
 5. After AI launch validation, evaluate whether the Games expansion is strategically justified; if started, reuse the shared marketplace primitives rather than creating a separate payment/ranking system.
 
@@ -186,7 +186,7 @@ Full ruleset lives in `AGENTS.md` under "Design system constraints" — treat th
 | Risk | Mitigation |
 |---|---|
 | Genre fatigue | Ship in days, not weeks |
-| Chargebacks | Dodo as MoR absorbs disputes; $5 floor limits remorse |
+| Chargebacks | Dodo as MoR absorbs disputes; $1 floor limits remorse |
 | Spam listings | Pay-to-list floor + report/unpublish flow |
 | Traffic spike | Edge caching, lean webhook path, polling architecture already avoids listener-cost blowup |
 | Status-doc drift | Keep PRD and implementation status aligned with actual code and runtime verification |
