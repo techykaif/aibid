@@ -5,7 +5,7 @@ import { MARKETS } from "@/lib/types";
 import SiteHeader from "@/app/components/SiteHeader";
 
 export default function SubmitPage() {
-  const [form, setForm] = useState({ name:"", url:"", tagline:"", description:"", market:"ai", category:"coding", email:"", twitterHandle:"", bid:"5" });
+  const [form, setForm] = useState({ name:"", url:"", tagline:"", description:"", market:"ai", category:"coding", email:"", twitterHandle:"", bid:"1" });
   const [logo, setLogo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -47,18 +47,18 @@ export default function SubmitPage() {
         <div className="field"><label htmlFor="product-category">Category</label><select id="product-category" name="category" value={form.category} onChange={e => update("category", e.target.value)}>{market.categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
         <div className="field"><label htmlFor="submitter-email">Email</label><input id="submitter-email" name="email" type="email" inputMode="email" autoComplete="email" spellCheck={false} required value={form.email} onChange={e => update("email", e.target.value)} placeholder="For your receipt and listing updates" /></div>
         <div className="field"><label htmlFor="twitter-handle">X handle <span className="muted">optional</span></label><input id="twitter-handle" name="twitterHandle" autoComplete="off" spellCheck={false} value={form.twitterHandle} onChange={e => update("twitterHandle", e.target.value)} placeholder="@yourproduct" /></div>
-        <div className="field"><label htmlFor="opening-bid">Opening bid</label><input id="opening-bid" name="bid" type="number" inputMode="decimal" min="5" step="1" required value={form.bid} onChange={e => update("bid", e.target.value)} /></div>
+        <div className="field"><label htmlFor="opening-bid">Opening bid</label><input id="opening-bid" name="bid" type="number" inputMode="decimal" min="1" step="1" required value={form.bid} onChange={e => update("bid", e.target.value)} /></div>
 
         <button className="button primary" type="submit" disabled={loading}>{loading ? "Opening secure checkout…" : `Continue to checkout · $${Number(form.bid || 0).toFixed(0)} →`}</button>
         {error && <p className="bid-error" role="alert">{error}</p>}
-        <p className="muted bid-note">One-time bid · minimum $5 · payment verified by webhook</p>
+        <p className="muted bid-note">One-time bid · minimum $1 · payment verified by webhook</p>
       </form>
       <aside className="form-aside">
         <div className="board-label">HOW IT WORKS</div>
         <h3>Turn attention into a position.</h3>
         <p>No subscriptions. No complicated ad manager. Your cumulative confirmed bid is your position.</p>
         <ul><li><b>01</b> · Create your listing</li><li><b>02</b> · Place the opening bid</li><li><b>03</b> · Get a public product page</li><li><b>04</b> · Outbid the field</li></ul>
-        <div className="metric"><div className="metric-label">Minimum opening bid</div><div className="metric-value">$5</div></div>
+        <div className="metric"><div className="metric-label">Minimum opening bid</div><div className="metric-value">$1</div></div>
       </aside>
     </div>
   </main>;
