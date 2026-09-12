@@ -14,6 +14,9 @@
 - Submission-time product URL reachability check with bounded timeout
 - Submission-time URL resolver blocks localhost, private/link-local IP targets, embedded credentials, IPv4-mapped private/loopback targets, and revalidates each HTTP(S) redirect target against public DNS/IP space
 - Submission-time basic profanity filter for product name and tagline
+- Atomic server-side new-listing rate limits: maximum 3 submissions per normalized email and 5 per trusted request IP in a rolling 24-hour window, enforced together in a Firestore transaction before checkout creation
+- Rejected AI product URLs cannot be resubmitted; new products persist a normalized URL marker and the submission guard also checks the raw URL for compatibility with older rejected documents
+- `$1` listing minimum is intentionally a bootstrap-phase price; review the minimum once there are 20+ live AI listings or two weeks after launch, whichever comes first
 - Firestore-backed logo upload: PNG/JPG/SVG uploads are decoded, resized, metadata-stripped, converted to WebP, and compressed to a conservative sub-180KB payload before persistence
 - Firestore logo documents use a dedicated `productLogos/{productId}` record and are served through a live-product-checked `/api/logo/[id]` route
 - Logo upload cleanup on failed checkout creation; moderation rejection transactionally removes the associated logo document; direct browser Firestore access remains blocked by default-deny rules
@@ -26,7 +29,7 @@
 - Payment reconciliation validates signed Dodo product/quantity and exact signed USD settlement amount
 - Idempotent payment reconciliation using payment ID, with checkout intent cleanup after successful reconciliation
 - Verified webhook delivery that arrives before its checkout intent returns retryable HTTP 503 rather than incorrectly suppressing provider retries
-- Webhook enforces the $5 new-product / $1 existing-product minimum from trusted server-side payment context
+- Webhook enforces the $1 new-product / $1 existing-product minimum from trusted server-side payment context
 - Explicit Dodo checkout cancellation route exists for both new-product and existing-product checkout flows
 - Atomic Firestore bid totals and daily rollups
 - Public product API and `/api/today` use explicit field allowlists that keep submitter email private
@@ -127,6 +130,8 @@ The shared marketplace primitives remain reusable so a future market can be adde
 - **2026-09-12 17:19 IST:** recurring production/spec audit rechecked latest `main` (`1bac63baea6295a5f4834f9346b9689f1eaad165`), `AGENTS.md`, PRD v3, PRD v3.1, and the launch status. No newer product-spec document surfaced. Vercel production deployment `dpl_6DndBRAqZPN883ccoVGESo4jg1GP` is `READY` and aliases `www.ai-bid.lol`/`ai-bid.lol`; Vercel reports the build completed in 13s with no error-only events, while GitHub exposes no Actions workflow run for the commit. Fresh production runtime aggregation shows 19 HTTP 200 responses in the last 6h and no grouped runtime errors in the last 24h.
 - **2026-09-12 17:19 IST:** recurring live SEO/feature-wiring audit verified `/robots.txt` 200 with the canonical sitemap, `/sitemap.xml` 200 with only the homepage, Today, seven AI categories, and legal pages, `/category/coding` 200 with exact canonical/index-follow/title/description/OG/Twitter/BreadcrumbList metadata and AI-only navigation, `/games` 404 with `noindex,nofollow`, and `/category/games` 404 with `noindex,nofollow`. The apex `ai-bid.lol` returns a permanent redirect toward the canonical `www.ai-bid.lol` host. No Games/Open Source/Music surface was observed in the active indexable production surface.
 - **2026-09-12 17:19 IST:** this run did not execute or fabricate any Dodo payment, signed webhook settlement, Firestore production mutation, logo upload/read, or payment/stats/rank activation. The remaining launch acceptance gate is still the real Dodo payment -> signed webhook -> idempotent Firestore activation -> totals/rank/public visibility path plus the documented Dodo test-mode/Firebase-emulator E2E and final combined acceptance audit.
+- **2026-09-12 17:22 IST:** anti-spam hardening was implemented on `main` in `app/api/checkout/route.ts`: atomic 3/email/24h and 5/IP/24h new-listing limits, normalized rejected-URL resubmission protection with a raw-URL compatibility check, and the `$1` bootstrap-price review trigger. No Dodo payment code, webhook code, payment trust boundary, Firestore rules, or production payment state was changed.
+- **2026-09-12 17:22 IST:** the first anti-spam deployment failed because the URL-normalization regex was over-escaped. The smallest correction was committed as `4177d623de3f17b74d6483a43efcc508931a472b`. Vercel production deployment `dpl_A7NTRC1PuMJEEFh3obrg1vyZwr7j` then completed `npm run build` successfully: Next.js 16.3.5 compiled, TypeScript passed, 31/31 static pages generated, and the production deployment reached `READY`. No Dodo or Firebase production mutation was performed for verification; the deployed `/submit` surface was fetched successfully and still exposes only the seven AI categories, `$1` minimum, and `noindex, follow`. The deployment has no runtime error logs for the checked window.
 
 ## Measurement and privacy safety
 
