@@ -29,7 +29,7 @@ const schema = z.object({
   ]),
   email: z.string().email(),
   twitterHandle: z.string().max(30).optional().default(""),
-  bid: z.coerce.number().min(5).max(1000000),
+  bid: z.coerce.number().min(1).max(1000000),
 });
 
 const PROFANITY = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "faggot", "fag", "slut", "whore"];
