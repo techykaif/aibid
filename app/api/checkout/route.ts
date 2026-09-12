@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { lookup } from "node:dns/promises";
+import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { db } from "@/lib/firebase-admin";
 import type { DocumentReference } from "firebase-admin/firestore";
@@ -33,10 +34,73 @@ const schema = z.object({
 });
 
 const PROFANITY = ["fuck", "shit", "bitch", "cunt", "nigger", "nigga", "faggot", "fag", "slut", "whore"];
+const SUBMISSION_LIMITS = { email: 3, ip: 5 } as const;
+const SUBMISSION_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+class SubmissionRateLimitError extends Error {}
 
 function containsProfanity(value: string) {
   const normalized = value.toLowerCase().replace(/[^a-z]+/g, " ");
   return PROFANITY.some((term) => new RegExp(`(?:^|\\s)${term}(?:$|\\s)`).test(normalized));
+}
+
+function normalizeProductUrl(value: string) {
+  const url = new URL(value);
+  url.hash = "";
+  url.hostname = url.hostname.toLowerCase();
+  if ((url.protocol === "http:" && url.port === "80") || (url.protocol === "https:" && url.port === "443")) {
+    url.port = "";
+  }
+  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\\/+$/, "");
+  return url.toString();
+}
+
+function hashRateLimitKey(value: string) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function getRequestIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || request.headers.get("x-real-ip")?.trim() || "unknown";
+}
+
+async function assertSubmissionRateLimit(email: string, ip: string) {
+  const now = Date.now();
+  const emailRef = db.collection("submissionRateLimits").doc(`email_${hashRateLimitKey(email.toLowerCase().trim())}`);
+  const ipRef = db.collection("submissionRateLimits").doc(`ip_${hashRateLimitKey(ip)}`);
+
+  await db.runTransaction(async (tx) => {
+    const [emailSnap, ipSnap] = await Promise.all([tx.get(emailRef), tx.get(ipRef)]);
+    const readCount = (snapshot: FirebaseFirestore.DocumentSnapshot) => {
+      const data = snapshot.data();
+      const windowStart = data?.windowStartAt instanceof Date ? data.windowStartAt.getTime() : data?.windowStartAt?.toMillis?.();
+      const count = typeof data?.count === "number" ? data.count : 0;
+      if (!windowStart || now - windowStart >= SUBMISSION_WINDOW_MS) return 0;
+      return count;
+    };
+
+    const emailCount = readCount(emailSnap);
+    const ipCount = readCount(ipSnap);
+    if (emailCount >= SUBMISSION_LIMITS.email || ipCount >= SUBMISSION_LIMITS.ip) {
+      throw new SubmissionRateLimitError("Too many new listings. Please try again later.");
+    }
+
+    const windowStartAt = new Date(now);
+    tx.set(emailRef, { count: emailCount + 1, windowStartAt });
+    tx.set(ipRef, { count: ipCount + 1, windowStartAt });
+  });
+}
+
+async function hasRejectedProductUrl(normalizedUrl: string, rawUrl: string) {
+  const [normalizedSnap, rawSnap] = await Promise.all([
+    db.collection("products").where("normalizedUrl", "==", normalizedUrl).limit(25).get(),
+    db.collection("products").where("url", "==", rawUrl).limit(25).get(),
+  ]);
+
+  return [...normalizedSnap.docs, ...rawSnap.docs].some((doc) => {
+    const data = doc.data();
+    return data.status === "rejected" && data.market === "ai";
+  });
 }
 
 function isPrivateOrLocalAddress(address: string) {
@@ -180,9 +244,16 @@ export async function POST(request: Request) {
     if (containsProfanity(`${input.name} ${input.tagline}`)) {
       return NextResponse.json({ error: "Please remove inappropriate language from the product name or tagline." }, { status: 400 });
     }
+
+    const normalizedUrl = normalizeProductUrl(input.url);
+    if (await hasRejectedProductUrl(normalizedUrl, input.url)) {
+      return NextResponse.json({ error: "This product URL was previously rejected and cannot be resubmitted." }, { status: 409 });
+    }
     if (!(await urlResolves(input.url))) {
       return NextResponse.json({ error: "That product URL could not be reached. Please check the URL and try again." }, { status: 400 });
     }
+
+    await assertSubmissionRateLimit(input.email, getRequestIp(request));
 
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
     const dodoProductId = process.env.DODO_PRODUCT_ID;
@@ -191,6 +262,7 @@ export async function POST(request: Request) {
     productRef = db.collection("products").doc();
     const productData = {
       ...input,
+      normalizedUrl,
       totalBidUSD: 0,
       bidCount: 0,
       status: "pending",
@@ -256,6 +328,9 @@ export async function POST(request: Request) {
     if (checkoutSessionCreated) {
       console.error("Dodo checkout was created but its checkout intent could not be persisted", error);
       return NextResponse.json({ error: "Checkout was created but could not be finalized. Please retry shortly." }, { status: 503 });
+    }
+    if (error instanceof SubmissionRateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
     }
     return NextResponse.json(
       { error: error instanceof z.ZodError ? "Please check the form fields." : "Could not create checkout." },
