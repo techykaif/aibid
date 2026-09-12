@@ -127,7 +127,7 @@ export async function POST(request: Request) {
         throw new Error("Payment does not match the server-created checkout intent");
       }
 
-      const minimumUSD = intentKind === "new_product" ? 5 : 1;
+      const minimumUSD = 1;
       if (amountUSD < minimumUSD) {
         throw new Error("Payment amount below the required minimum");
       }
