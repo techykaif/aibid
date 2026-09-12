@@ -91,7 +91,7 @@ export default async function Home() {
     <section className="market-primer" aria-label="How Ai-Bid works">
       <div className="primer-label"><span>THE MARKET, IN 3 MOVES</span><span>Simple rules. Public signal.</span></div>
       <div className="primer-steps">
-        <div className="primer-step"><span className="step-number">01</span><div><strong>List your product</strong><p>Submit your AI product with a $5 minimum starting bid.</p></div></div>
+        <div className="primer-step"><span className="step-number">01</span><div><strong>List your product</strong><p>Submit your AI product with a $1 minimum starting bid.</p></div></div>
         <div className="primer-step"><span className="step-number">02</span><div><strong>Bid for attention</strong><p>Every confirmed bid adds to your product&apos;s public total.</p></div></div>
         <div className="primer-step"><span className="step-number">03</span><div><strong>Climb the board</strong><p>Higher cumulative bids mean a higher place in the market.</p></div></div>
       </div>
