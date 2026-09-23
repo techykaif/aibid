@@ -9,10 +9,7 @@ const SITE_DESCRIPTION = "Discover AI products, bid for attention, and climb the
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: {
-    default: SITE_TITLE,
-    template: "%s | Ai-Bid",
-  },
+  title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: BRAND_NAME,
   creator: BRAND_NAME,
