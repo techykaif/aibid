@@ -48,6 +48,8 @@ for (const [name, path] of checks) {
     throw new Error(`${name} returned HTTP ${response.status}`);
   }
 
+  const body = await response.text();
+
   if (path.startsWith("/api/")) {
     const robotsTag = response.headers.get("x-robots-tag") || "";
     if (robotsTag.toLowerCase() !== "noindex, nofollow") {
@@ -59,14 +61,12 @@ for (const [name, path] of checks) {
       throw new Error(`${name} did not return JSON`);
     }
 
-    const body = await response.text();
     if (body.includes('\"email\"') || body.includes('\"submitterEmail\"')) {
       throw new Error(`${name} appears to expose a private email field`);
     }
   }
 
   if (path === "/" || path === "/today" || path === "/category/coding") {
-    const body = await response.text();
     if (!hasCanonical(body, "https://www.ai-bid.lol")) {
       throw new Error(`${name} is missing the canonical www.ai-bid.lol link`);
     }
@@ -79,7 +79,6 @@ for (const [name, path] of checks) {
   }
 
   if (path === "/robots.txt") {
-    const body = await response.text();
     if (!/^Sitemap:\s*https:\/\/www\.ai-bid\.lol\/sitemap\.xml\s*$/im.test(body)) {
       throw new Error("robots.txt is missing the canonical www.ai-bid.lol sitemap declaration");
     }
@@ -89,14 +88,12 @@ for (const [name, path] of checks) {
   }
 
   if (path === "/" || path === "/sitemap.xml") {
-    const body = await response.text();
     if (/games(?:-|\b)/i.test(body)) {
       throw new Error(`${name} exposes a deferred Games launch surface`);
     }
   }
 
   if (path === "/submit") {
-    const body = await response.text();
     if (/games|open source|music/i.test(body)) {
       throw new Error("submission page exposes a deferred future-market option");
     }
@@ -106,7 +103,6 @@ for (const [name, path] of checks) {
   }
 
   if (path === "/report") {
-    const body = await response.text();
     if (!hasMeta(body, "robots", "noindex, nofollow")) {
       throw new Error("report page is missing its noindex, nofollow boundary");
     }
