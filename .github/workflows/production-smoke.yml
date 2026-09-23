@@ -23,7 +23,6 @@ jobs:
         run: npm run build
       - name: Run public production smoke checks
         id: public_smoke
-        continue-on-error: true
         run: |
           for attempt in 1 2 3; do
             if node scripts/production-smoke.mjs; then
@@ -41,6 +40,3 @@ jobs:
       - name: Run AI category SEO smoke checks
         if: always()
         run: node scripts/ai-category-smoke.mjs
-      - name: Fail if public production smoke failed
-        if: steps.public_smoke.outcome == 'failure'
-        run: exit 1
