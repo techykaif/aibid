@@ -10,7 +10,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   try {
     const product = await db.collection("products").doc(id).get();
-    if (!product.exists || product.data()?.status !== "live") {
+    if (!product.exists || product.data()?.status !== "live" || product.data()?.market !== "ai") {
       return NextResponse.json({ error: "Logo not found" }, { status: 404 });
     }
 
