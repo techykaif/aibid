@@ -39,7 +39,7 @@ export default async function Leaderboard({ category }: { category?: string }) {
   } : null;
 
   return <section className="board">
-    {listSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listSchema) }} />
+    {listSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listSchema) }} />}
     <nav className="tabs" aria-label="Filter leaderboard by category">
       <Link className={`tab ${!category ? "active" : ""}`} href="/" aria-current={!category ? "page" : undefined}>All AI</Link>
       {MARKETS.map((market) => market.categories.map((item) => <Link key={item.slug} className={`tab ${category === item.slug ? "active" : ""}`} href={`/category/${item.slug}`} aria-current={category === item.slug ? "page" : undefined}>{market.name} · {item.name}</Link>))}
