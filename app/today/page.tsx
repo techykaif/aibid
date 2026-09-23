@@ -9,12 +9,12 @@ export const revalidate = 15;
 export const metadata: Metadata = {
   title: "Today’s AI market — Ai-Bid",
   description: "See which AI products are winning today’s visibility race on Ai-Bid.",
-  alternates: { canonical: "/today" },
+  alternates: { canonical: "https://www.ai-bid.lol/today" },
   robots: { index: true, follow: true },
   openGraph: {
     title: "Today’s AI market — Ai-Bid",
     description: "See which AI products are winning today’s visibility race on Ai-Bid.",
-    url: "/today",
+    url: "https://www.ai-bid.lol/today",
     type: "website",
     siteName: "Ai-Bid",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Today’s AI market on Ai-Bid" }],
