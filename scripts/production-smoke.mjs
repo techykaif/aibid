@@ -9,6 +9,7 @@ const checks = [
   ["stats API", "/api/stats"],
   ["AI category", "/category/coding"],
   ["submit", "/submit"],
+  ["admin login", "/admin/login"],
   ["report", "/report"],
   ["robots", "/robots.txt"],
   ["sitemap", "/sitemap.xml"],
@@ -93,6 +94,12 @@ for (const [name, path] of checks) {
     }
   }
 
+  if (path === "/submit" || path === "/admin/login") {
+    if (!hasMeta(body, "robots", "noindex, follow") && !hasMeta(body, "robots", "noindex, nofollow")) {
+      throw new Error(`${name} page is missing its noindex boundary`);
+    }
+  }
+
   if (path === "/submit") {
     if (/games|open source|music/i.test(body)) {
       throw new Error("submission page exposes a deferred future-market option");
@@ -151,7 +158,11 @@ const invalidRedirect = await fetch(new URL(`/go/${invalidProductId}`, baseUrl),
 if (invalidRedirect.status !== 404) {
   throw new Error(`invalid product redirect returned HTTP ${invalidRedirect.status}, expected 404`);
 }
-console.log("PASS invalid product redirect: HTTP 404");
+const invalidRedirectRobots = invalidRedirect.headers.get("x-robots-tag") || "";
+if (invalidRedirectRobots.toLowerCase() !== "noindex, nofollow") {
+  throw new Error("invalid product redirect is missing the noindex, nofollow X-Robots-Tag");
+}
+console.log("PASS invalid product redirect: HTTP 404 + noindex");
 
 const invalidProductPage = await fetch(new URL(`/product/${invalidProductId}`, baseUrl), {
   redirect: "manual",
