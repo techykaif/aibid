@@ -1,13 +1,8 @@
 "use client";
 
-import type { Metadata } from "next";
 import { useState } from "react";
 import { MARKETS } from "@/lib/types";
 import SiteHeader from "@/app/components/SiteHeader";
-
-export const metadata: Metadata = {
-  robots: { index: false, follow: true },
-};
 
 export default function SubmitPage() {
   const [form, setForm] = useState({ name:"", url:"", tagline:"", description:"", market:"ai", category:"coding", email:"", twitterHandle:"", bid:"1" });
