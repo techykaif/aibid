@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const products = await db.collection("products")
       .where("market", "==", "ai")
-      .limit(5000)
+      .limit(50000)
       .get();
 
     entries.push(...products.docs
