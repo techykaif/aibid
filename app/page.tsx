@@ -29,23 +29,6 @@ export const metadata: Metadata = {
 
 export const revalidate = 15;
 
-const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Ai-Bid",
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.svg`,
-};
-
-const websiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Ai-Bid",
-  alternateName: "Ai Bid",
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
-};
-
 async function getMarketStats() {
   if (!isFirebaseConfigured) return null;
 
@@ -70,8 +53,6 @@ export default async function Home() {
 
   return <main className="shell">
     <SiteHeader />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
     {!isFirebaseConfigured && <div className="demo-banner" role="status"><span className="status-dot"/><b>MARKET NOT CONNECTED</b><span>Payments and live rankings are disabled until production credentials are connected.</span></div>}
     <header className="hero">
       <div className="hero-copy">
