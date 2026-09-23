@@ -9,12 +9,16 @@ const SITE_DESCRIPTION = "Discover AI products, bid for attention, and climb the
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: SITE_TITLE,
+  title: {
+    default: SITE_TITLE,
+    template: "%s | Ai-Bid",
+  },
   description: SITE_DESCRIPTION,
   applicationName: BRAND_NAME,
   creator: BRAND_NAME,
   publisher: BRAND_NAME,
   category: "technology",
+  alternates: { canonical: SITE_URL },
   keywords: ["AI products", "AI tools", "AI marketplace", "AI discovery", "product visibility", "Ai-Bid"],
   robots: {
     index: true,
@@ -47,6 +51,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon.png",
     apple: "/favicon.png",
   },
+  manifest: "/manifest.webmanifest",
 };
 
 const themeInitScript = `(() => {
@@ -68,6 +73,21 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: BRAND_NAME,
+          url: SITE_URL,
+          logo: `${SITE_URL}/logo.svg`,
+        }) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: BRAND_NAME,
+          alternateName: "Ai Bid",
+          url: SITE_URL,
+          description: SITE_DESCRIPTION,
+        }) }} />
       </head>
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>
