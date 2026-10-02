@@ -1,4 +1,4 @@
-# Ai-Bid — Implementation Status
+# Ai-Bid - Implementation Status
 
 `PRD v3.md` is the current complete product specification and launch acceptance reference. `PRD v3.1.md` is the newer architecture addendum and supersedes the v3 logo-storage section. `AGENTS.md` remains the enforced UI/design-system source of truth.
 
@@ -89,10 +89,10 @@
 
 The launch is intentionally **AI-only**. Games has been removed from the active launch market and moved to a future expansion phase. Open Source and Music remain future expansions. Future markets must not appear as live categories, submission options, navigation, or fabricated production listings until deliberately activated.
 
-1. **AI** — sole current launch market
-2. **Games** — future expansion after AI validation
-3. **Open Source** — future expansion
-4. **Music** — future expansion
+1. **AI** - sole current launch market
+2. **Games** - future expansion after AI validation
+3. **Open Source** - future expansion
+4. **Music** - future expansion
 5. Additional markets only after the core mechanic and earlier phases are validated
 
 The shared marketplace primitives remain reusable so a future market can be added without creating a separate payment/ranking system.
