@@ -7,12 +7,12 @@ import type { Product } from "@/lib/types";
 export const revalidate = 15;
 
 export const metadata: Metadata = {
-  title: "Today’s AI market — Ai-Bid",
+  title: "Today’s AI market - Ai-Bid",
   description: "See which AI products are winning today’s visibility race on Ai-Bid.",
   alternates: { canonical: "https://www.ai-bid.lol/today" },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Today’s AI market — Ai-Bid",
+    title: "Today’s AI market - Ai-Bid",
     description: "See which AI products are winning today’s visibility race on Ai-Bid.",
     url: "https://www.ai-bid.lol/today",
     type: "website",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Today’s AI market — Ai-Bid",
+    title: "Today’s AI market - Ai-Bid",
     description: "See which AI products are winning today’s visibility race on Ai-Bid.",
     images: ["/opengraph-image"],
   },

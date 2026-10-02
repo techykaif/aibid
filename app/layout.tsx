@@ -4,7 +4,7 @@ import "./globals.css";
 
 const SITE_URL = "https://www.ai-bid.lol";
 const BRAND_NAME = "Ai-Bid";
-const SITE_TITLE = "Ai-Bid — The visibility market for AI";
+const SITE_TITLE = "Ai-Bid - The visibility market for AI";
 const SITE_DESCRIPTION = "Discover AI products, bid for attention, and climb the public visibility market on confirmed bid volume.";
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     locale: "en_US",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Ai-Bid — The visibility market for AI" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Ai-Bid - The visibility market for AI" }],
   },
   twitter: {
     card: "summary_large_image",

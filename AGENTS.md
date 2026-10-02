@@ -41,7 +41,7 @@ Ai-Bid is a pay-to-rank public market for AI products. The UI should feel like a
 These constraints are non-negotiable. Do not reinterpret, extend, or "improve" them arbitrarily. If a new component needs a color, radius, or spacing value, use the established design tokens and patterns rather than creating ad-hoc variants.
 
 - One stylesheet: app/globals.css. Do not create additional CSS files (no *-polish.css, *-primer.css, *-premium.css, etc.). If globals.css is getting hard to navigate, split it by section comment, not by file.
-- Zero `!important` anywhere. If you're reaching for `!important`, a selector elsewhere is wrong — fix that selector instead.
+- Zero `!important` anywhere. If you're reaching for `!important`, a selector elsewhere is wrong - fix that selector instead.
 - Dual-theme system. Light and dark modes are both supported and must be designed and tested as first-class experiences. Do not remove the theme toggle or replace theme support with a dark-only implementation. Theme switching must be hydration-safe and avoid a flash of the wrong theme.
 - Keep the documented dark palette as the source of truth for dark mode:
   --bg:#080808  --bg-glow:#2a1700 (hero only, once)  --surface:#0d0d0d
@@ -53,5 +53,5 @@ These constraints are non-negotiable. Do not reinterpret, extend, or "improve" t
 - No monospace font anywhere. One sans stack for everything, no exceptions for labels, tickers, or step numbers.
 - Radius: 8px (inputs, pills, thumbnails) / 12px (buttons, tabs) / 16px (cards). No other radius value.
 - The eyebrow/kicker label style is used exactly once, in the hero. Do not add a `.section-kicker` or reuse it elsewhere.
-- No new hero widgets (charts, previews, stat graphics) without this being explicitly requested first — describe the plan before building it.
+- No new hero widgets (charts, previews, stat graphics) without this being explicitly requested first - describe the plan before building it.
 - No hover-underline animations on nav links, no sticky/blurred header, no backdrop-filter, unless explicitly requested.

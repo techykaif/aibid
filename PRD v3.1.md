@@ -1,4 +1,4 @@
-# Ai-Bid — PRD v3.1 Architecture Addendum
+# Ai-Bid - PRD v3.1 Architecture Addendum
 
 **Supersedes for logo storage only:** the Firebase Storage logo-upload requirements in PRD v3 are replaced by this decision. All other PRD v3 requirements remain authoritative.
 

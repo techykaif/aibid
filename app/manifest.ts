@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Ai-Bid — The visibility market for AI",
+    name: "Ai-Bid - The visibility market for AI",
     short_name: "Ai-Bid",
     description: "Discover AI products, bid for attention, and climb the public visibility market.",
     start_url: "/",

@@ -65,11 +65,11 @@ export async function generateMetadata({ params }: { params: Promise<{ page: str
   const { page } = await params;
   const content = pages[page as PageKey];
   if (!content) {
-    return { title: "Page not found — Ai-Bid", robots: { index: false, follow: false } };
+    return { title: "Page not found - Ai-Bid", robots: { index: false, follow: false } };
   }
 
   const canonical = `${SITE_URL}/legal/${page}`;
-  const title = `${content.title} — Ai-Bid`;
+  const title = `${content.title} - Ai-Bid`;
   return {
     title,
     description: content.intro,
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: { params: Promise<{ page: str
       siteName: "Ai-Bid",
       title,
       description: content.intro,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${content.title} — Ai-Bid` }],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${content.title} - Ai-Bid` }],
     },
     twitter: {
       card: "summary_large_image",
