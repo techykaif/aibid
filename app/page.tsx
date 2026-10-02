@@ -5,7 +5,7 @@ import Leaderboard from "./components/Leaderboard";
 import SiteHeader from "./components/SiteHeader";
 
 const SITE_URL = "https://www.ai-bid.lol";
-const SITE_TITLE = "Ai-Bid — The visibility market for AI";
+const SITE_TITLE = "Ai-Bid - The visibility market for AI";
 const SITE_DESCRIPTION = "Discover AI products, bid for attention, and climb the public visibility market on confirmed bid volume.";
 
 export const metadata: Metadata = {
