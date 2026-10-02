@@ -25,7 +25,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     rank = index >= 0 ? index + 1 : null;
   }
 
-  const displayRank = rank === null ? "—" : String(rank);
+  const displayRank = rank === null ? "-" : String(rank);
   const totalBid = Number(product?.totalBidUSD || 0).toLocaleString("en-US", {
     maximumFractionDigits: 0,
   });
