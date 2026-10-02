@@ -56,13 +56,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!category || !market) {
     return {
-      title: "Category not found — Ai-Bid",
+      title: "Category not found - Ai-Bid",
       robots: { index: false, follow: false },
     };
   }
 
   const canonical = `https://www.ai-bid.lol/category/${encodeURIComponent(slug)}`;
-  const title = `${category.name} — Ai-Bid`;
+  const title = `${category.name} - Ai-Bid`;
   const description = `Public AI leaderboard for ${category.name}. Discover products and rank higher with confirmed bids.`;
 
   return {
