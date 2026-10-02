@@ -109,7 +109,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       </article>
       <aside className="metric">
         <div className="metric-label">Current position</div>
-        <div className="metric-value">#{rank ?? "—"}</div>
+        <div className="metric-value">#{rank ?? "-"}</div>
         <div className="metric-label" style={{ marginTop: 24 }}>Competitive move</div>
         <div className="muted" style={{ whiteSpace: "normal", lineHeight: 1.5 }}>Add a confirmed bid to push the product higher.</div>
       </aside>
@@ -132,14 +132,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const base = "https://www.ai-bid.lol";
 
   if (!isFirebaseConfigured) {
-    return { title: "Product — Ai-Bid", robots: { index: false, follow: false } };
+    return { title: "Product - Ai-Bid", robots: { index: false, follow: false } };
   }
 
   try {
     const snap = await db.collection("products").doc(id).get();
     const data = snap.data();
     if (!snap.exists || data?.status !== "live" || data?.market !== "ai") {
-      return { title: "Product not found — Ai-Bid", robots: { index: false, follow: false } };
+      return { title: "Product not found - Ai-Bid", robots: { index: false, follow: false } };
     }
 
     const name = String(data.name || "AI product");
@@ -148,7 +148,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const description = data.description ? String(data.description) : tagline;
     const canonical = `${base}/product/${encodeURIComponent(id)}`;
     const ogImage = `${canonical}/opengraph-image`;
-    const title = `${name} — ${category} — Ai-Bid`;
+    const title = `${name} - ${category} - Ai-Bid`;
 
     return {
       title,
@@ -171,6 +171,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       },
     };
   } catch {
-    return { title: "Product — Ai-Bid", robots: { index: false, follow: false } };
+    return { title: "Product - Ai-Bid", robots: { index: false, follow: false } };
   }
 }
